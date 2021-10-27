@@ -1,5 +1,5 @@
 import sys
-from Qt import QtWidgets
+from Qt import QtWidgets, QtCore
 from pyblish import api
 
 
@@ -13,6 +13,7 @@ def get_plugin_config(plugin):
         if not attr.startswith('_') and attr not in skip_attr:
             value = getattr(plugin, attr)
             plugin_config[attr] = value
+    return plugin_config
 
 
 def get_project_config_from_discover():
@@ -27,7 +28,93 @@ def get_project_config_from_discover():
     return pipeline_config
 
 
+class manager_UI(QtWidgets.QWidget):
+
+    def __init__(self, pipeline_config, parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
+
+        self.pipeline_config = pipeline_config # todo to init
+
+        self.widget_plugins_list = QtWidgets.QWidget(self)
+        self.vbox_plugins = QtWidgets.QVBoxLayout(self)
+        self.widget_plugins_list.setLayout(self.vbox_plugins)
+
+        self.hbox = QtWidgets.QHBoxLayout(self)
+        self.widget_plugin_config = QtWidgets.QWidget(self)
+        self.hbox.addWidget(self.widget_plugin_config)
+
+        self.scroll = QtWidgets.QScrollArea(self)
+        self.scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setWidget(self.widget_plugins_list)
+
+        self.hbox.addWidget(self.scroll)
+
+        # create buttons
+        for plugin_name, plugin_config in pipeline_config.items():
+            button = QtWidgets.QPushButton(plugin_name, self.widget_plugins_list)
+            self.vbox_plugins.addWidget(button)
+            button.clicked.connect(self.show_plugin_config)
+
+        self.setLayout(self.hbox)
+
+    def show_plugin_config(self):
+        sender = self.sender()
+        plugin_name = sender.text()
+
+        # get matching config
+        plugin_config = self.pipeline_config[plugin_name]
+        w = self.get_plugin_config_widget(plugin_config)
+
+        self.hbox.removeWidget(self.widget_plugin_config)
+        self.widget_plugin_config.deleteLater()
+        self.widget_plugin_config = None
+        # del self.widget_plugin_config
+
+        self.widget_plugin_config = w
+        self.hbox.addWidget(w)
+        w.repaint()
+
+
+    def get_plugin_config_widget(self, config):
+
+        plugin_config_widget = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout(plugin_config_widget)
+        plugin_config_widget.setLayout(vbox)
+
+        for attr, value in config.items():
+            layout_attr = QtWidgets.QHBoxLayout(plugin_config_widget)
+
+            w = QtWidgets.QLabel(attr)
+            layout_attr.addWidget(w)
+
+            widget = get_widget_from_attr_type(attr, value)
+            widget.setParent(plugin_config_widget)
+
+            layout_attr.addWidget(widget)
+
+            vbox.addLayout(layout_attr)
+
+        return plugin_config_widget
+
+
 def make_config():
+
+    config = get_project_config_from_discover()
+
+    app = QtWidgets.QApplication(sys.argv)
+
+    m = manager_UI(config)
+    # m.display_config(config)
+
+    m.show()
+    app.exec_()
+
+    return
+
+
+
     # get list of all discovered plugins (no filter)
     plugins = api.discover()
 
@@ -79,7 +166,6 @@ def get_widget_from_attr_type(attr, value):
         w = QtWidgets.QDoubleSpinBox()
         w.setValue(value)
     elif isinstance(value, str):
-        print('a')
         w = QtWidgets.QLabel(value)
     elif isinstance(value, list):
         # TODO special widget that allows to add tags
