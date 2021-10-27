@@ -12,7 +12,6 @@ api.deregister_all_paths()  # deregister default plugins for sample
 api.register_plugin(Plugin1)
 api.register_plugin(Plugin2)
 
-api.register_plugin_path('C:/shared plugins')
 apply_config('sample_config.json')
 
 #print plugin settings before config applied

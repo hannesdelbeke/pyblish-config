@@ -18,7 +18,14 @@ def get_plugin_config(plugin):
 
 def get_project_config_from_discover():
     # get all plugins from pyblish
+
+    #todo set input before we discover. ex host maya
+    # or pyblish version, see def plugins_from_module() in pyblish.plugin.py
+
+    api.register_host('maya')
+    # todo atm some plugins fail because of cannot import cmds from maya, when run from python
     plugins = api.discover()
+    # print(len(plugins))
 
     # store all plugin configs in the pipeline config
     pipeline_config = {}
@@ -166,7 +173,8 @@ def get_widget_from_attr_type(attr, value):
         w = QtWidgets.QDoubleSpinBox()
         w.setValue(value)
     elif isinstance(value, str):
-        w = QtWidgets.QLabel(value)
+        w = QtWidgets.QLineEdit(value)
+        # w = QtWidgets.QLabel(value)
     elif isinstance(value, list):
         # TODO special widget that allows to add tags
         s = ''
@@ -179,3 +187,50 @@ def get_widget_from_attr_type(attr, value):
     else:
         w = QtWidgets.QLabel(str(value))
     return w
+
+
+#
+# # copy of pyblish method, we comment out some stuff
+# def plugins_from_module(module):
+#     """Return plug-ins from module
+#
+#     Arguments:
+#         module (types.ModuleType): Imported module from which to
+#             parse valid Pyblish plug-ins.
+#
+#     Returns:
+#         List of plug-ins, or empty list if none is found.
+#
+#     """
+#
+#     plugins = list()
+#
+#     for name in dir(module):
+#         if name.startswith("_"):
+#             continue
+#
+#         # It could be anything at this point
+#         obj = getattr(module, name)
+#
+#         if not inspect.isclass(obj):
+#             continue
+#
+#         if not issubclass(obj, Plugin):
+#             continue
+#
+#         if not plugin_is_valid(obj):
+#             log.debug("Plug-in invalid: %s", obj)
+#             continue
+#
+#         if not version_is_compatible(obj):
+#             log.debug("Plug-in %s not compatible with "
+#                       "this version (%s) of Pyblish." % (
+#                           obj, __version__))
+#             continue
+#
+#         if not host_is_compatible(obj):
+#             continue
+#
+#         plugins.append(obj)
+#
+#     return plugins
