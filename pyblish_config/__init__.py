@@ -3,9 +3,18 @@ import json
 
 
 # does register_config imply we can have multiple filters?
-# register because the filter only applies after discover.
-# we need discover since that is how the pyblish GUI works
+# let's name it register because the filter only applies after discover has run.
+# we need to support discover since the pyblish GUI uses it
 def register_config_filter(config_path=None, config_dict=None):
+    """
+    register a plugin settings filter from a settings file,
+    which overwrites the default plugin settings,
+    and is applied when running pyblish discover
+
+    :param config_path: path to config dict to load plugin settings from (json file)
+    :param config_dict: pass a dict directly
+    :return: None
+    """
 
     # default_settins (ex all enabled/disabled ....)
     # any plugins not in pipeline, should they be included or exluded
