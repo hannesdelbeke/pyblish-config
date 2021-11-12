@@ -1,3 +1,12 @@
+# we register any existing plugins
+# then we load the UI from the pyblish config manager
+# now we can edit the registered plugins their settings in the UI, and save out a config
+
+# this config can then be loaded in to apply the settings. see sample_apply_config.py
+
+# TODO add option to create/edit config through CLI
+
+
 from pyblish import api
 import pyblish_config.config_creator
 import types
