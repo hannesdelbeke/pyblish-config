@@ -44,6 +44,8 @@ class manager_UI(QtWidgets.QWidget):
     def __init__(self, pipeline_config, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
+        self.plugin_buttons = []
+
         self.json_path_output = r"C:\Projects\pyblish-plugin-manager\output_config.json"
         self.json_path_input = ""
 
@@ -82,8 +84,12 @@ class manager_UI(QtWidgets.QWidget):
 
         self.setLayout(self.hbox_main_layout)
 
-    def create_plugins_list_widget(self):
+        # display  plugin settings from first plugin, prevents a weird layout change
+        if self.plugin_buttons:
+            plugin_name = self.plugin_buttons[0].text()
+            self.show_plugin_config(plugin_name)
 
+    def create_plugins_list_widget(self):
         self.widget_plugins_list = QtWidgets.QWidget(self)
         self.vbox_plugins = QtWidgets.QVBoxLayout(self)
         self.widget_plugins_list.setLayout(self.vbox_plugins)
@@ -102,7 +108,8 @@ class manager_UI(QtWidgets.QWidget):
             # signal_func = w.stateChanged
 
             button = QtWidgets.QPushButton(plugin_name, self.widget_plugins_list)
-            button.clicked.connect(self.show_plugin_config)
+            button.clicked.connect(self.show_clicked_plugin_config)
+            self.plugin_buttons.append(button)
 
             layout = QtWidgets.QHBoxLayout(self)
             layout.addWidget(w)
@@ -110,12 +117,15 @@ class manager_UI(QtWidgets.QWidget):
 
             self.vbox_plugins.addLayout(layout)
 
+        self.vbox_plugins.addStretch()  # add stretch on bottom to push all buttons to top instead of center
         return self.scroll
 
-    def show_plugin_config(self):
+    def show_clicked_plugin_config(self, *args):
         sender = self.sender()
         plugin_name = sender.text()
+        self.show_plugin_config(plugin_name)
 
+    def show_plugin_config(self, plugin_name):
         # get matching config
         plugin_config = self.pipeline_config[plugin_name]
         w = self.get_plugin_config_widget(plugin_config, plugin_name)
@@ -159,6 +169,8 @@ class manager_UI(QtWidgets.QWidget):
             layout_attr.addWidget(attribute_name_label)
             layout_attr.addWidget(widget)
             vbox.addLayout(layout_attr)
+
+        vbox.addStretch()
 
         return plugin_config_widget
 

@@ -3,13 +3,14 @@ import json
 
 
 # does register_config imply we can have multiple filters?
-def apply_config(config_path=None, config_dict=None):
+# register because the filter only applies after discover.
+# we need discover since that is how the pyblish GUI works
+def register_config_filter(config_path=None, config_dict=None):
 
     # default_settins (ex all enabled/disabled ....)
     # any plugins not in pipeline, should they be included or exluded
 
-
-    def apply_config_filter(plugins):
+    def config_filter_callback(plugins):
         # we expect either the config path or the config data
         if config_path:
             f = open(config_path, )
@@ -32,7 +33,11 @@ def apply_config(config_path=None, config_dict=None):
                 # aply settings to plugins
                 setattr(plugin, key, value)
 
+    api.register_discovery_filter(config_filter_callback)
 
-    api.register_discovery_filter(apply_config_filter)
 
+# def apply_config(config_path=None, config_dict=None):
+#     register_config_filter(config_path=config_path)
+#     plugins = api.discover()
+#     return plugins
 
