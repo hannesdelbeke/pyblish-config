@@ -9,8 +9,18 @@ import copy
 
 skip_attr = ['repair', 'id', 'log', 'process', 'version', 'requires']
 
+# plugin config: the config/settings of a single plugin
+
+# pipeline config: the config/settings of all plugins in your pipeline, a dict of dicts of plugin configs
+# since we use names you cant have 2 plugins  with the same name
+
 
 def get_plugin_config(plugin):
+    """
+    get all attributes from the plugin class, and save them in a dict
+    :param plugin: Pyblish plugin to get settings from
+    :return: a dict containing plugin settings
+    """
     # for every plugin, store all settings in the plugin config
     plugin_config = {}
     for attr in dir(plugin):
@@ -21,13 +31,16 @@ def get_plugin_config(plugin):
     return plugin_config
 
 
-def get_project_config_from_discover():
+def get_pipeline_config_from_discover():
+    """
+    get all plugin configs from all registered plugins in a single dict
+    """
     # get all plugins from pyblish
 
     #todo set input before we discover. ex host maya
     # or pyblish version, see def plugins_from_module() in pyblish.plugin.py
 
-    api.register_host('maya')
+    # api.register_host('maya')  # todo change this to not rely on maya
     # todo atm some plugins fail because of cannot import cmds from maya, when run from python
     plugins = api.discover()
 
@@ -41,21 +54,20 @@ def get_project_config_from_discover():
 
 class manager_UI(QtWidgets.QWidget):
 
-    def __init__(self, pipeline_config, parent=None):
+    def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
         self.plugin_buttons = []
+        self.pipeline_config = {}
+        # self.original_pipeline_config = copy.deepcopy(pipeline_config)
 
         self.json_path_output = r"C:\Projects\pyblish-plugin-manager\output_config.json"
         self.json_path_input = ""
 
-        self.original_pipeline_config = copy.deepcopy(pipeline_config)
-        self.pipeline_config = pipeline_config
-
         self.vbox_config_layout = QtWidgets.QVBoxLayout(self)  # this needs to happen before scrollarea
         self.hbox_main_layout = QtWidgets.QHBoxLayout(self)  # this needs to happen before scrollarea
         self.config_button_layout = QtWidgets.QHBoxLayout()
-        self.scroll = self.create_plugins_list_widget()
+        self.scroll = self.create_widget_plugins_scroll_area()
 
         self.widget_plugin_config = QtWidgets.QWidget(self)
         # self.hbox.addWidget(self.scroll)
@@ -84,12 +96,46 @@ class manager_UI(QtWidgets.QWidget):
 
         self.setLayout(self.hbox_main_layout)
 
+    def show_plugin_settings(self):
         # display  plugin settings from first plugin, prevents a weird layout change
         if self.plugin_buttons:
             plugin_name = self.plugin_buttons[0].text()
             self.show_plugin_config(plugin_name)
 
-    def create_plugins_list_widget(self):
+    def show_clicked_plugin_config(self, *args):
+        sender = self.sender()
+        plugin_name = sender.text()
+        self.show_plugin_config(plugin_name)
+
+    def show_plugin_config(self, plugin_name):
+        """
+        handle all the fluff around showing a new plugin config widget, and create it
+        :param plugin_name: name of the plugin
+        :return: Qt widget visualising the plugin config
+        """
+
+        # get matching config
+        plugin_config = self.pipeline_config[plugin_name]
+        w = self.create_widget_plugin_config(plugin_config, plugin_name)
+
+        self.hbox_main_layout.removeWidget(self.widget_plugin_config)
+        self.widget_plugin_config.deleteLater()
+        self.widget_plugin_config = None
+        # del self.widget_plugin_config
+
+        self.widget_plugin_config = w
+        self.hbox_main_layout.addWidget(w)
+        w.repaint()
+
+    def load_config(self, pipeline_config):
+        self.original_pipeline_config = copy.deepcopy(pipeline_config)
+        self.pipeline_config = copy.deepcopy(pipeline_config)  # pipeline_config
+        self.delete_plugin_buttons()
+        self.create_widget_plugin_buttons()
+        self.show_plugin_settings()
+
+
+    def create_widget_plugins_scroll_area(self):
         self.widget_plugins_list = QtWidgets.QWidget(self)
         self.vbox_plugins = QtWidgets.QVBoxLayout(self)
         self.widget_plugins_list.setLayout(self.vbox_plugins)
@@ -100,7 +146,11 @@ class manager_UI(QtWidgets.QWidget):
         self.scroll.setWidgetResizable(True)
         self.scroll.setWidget(self.widget_plugins_list)
 
-        # create plugin buttons
+        # self.create_plugin_buttons()
+
+        return self.scroll
+
+    def create_widget_plugin_buttons(self):
         for plugin_name, plugin_config in self.pipeline_config.items():
 
             w = QtWidgets.QCheckBox()
@@ -118,30 +168,23 @@ class manager_UI(QtWidgets.QWidget):
             self.vbox_plugins.addLayout(layout)
 
         self.vbox_plugins.addStretch()  # add stretch on bottom to push all buttons to top instead of center
-        return self.scroll
 
-    def show_clicked_plugin_config(self, *args):
-        sender = self.sender()
-        plugin_name = sender.text()
-        self.show_plugin_config(plugin_name)
+    def create_widget_plugin_config(self, plugin_config, plugin_name):
+        """
+        create a widget for the plugin config
 
-    def show_plugin_config(self, plugin_name):
-        # get matching config
-        plugin_config = self.pipeline_config[plugin_name]
-        w = self.get_plugin_config_widget(plugin_config, plugin_name)
+        ------------------- -------------------
+        | attribute_1_name | attribute_1_value |
+        | attribute_2_name | attribute_2_value |
+        | ...              | ...               |
+        ------------------- -------------------
 
-        self.hbox_main_layout.removeWidget(self.widget_plugin_config)
-        self.widget_plugin_config.deleteLater()
-        self.widget_plugin_config = None
-        # del self.widget_plugin_config
+        :param plugin_config:
+        :param plugin_name:
+        :return: the plugin config widget
+        """
 
-        self.widget_plugin_config = w
-        self.hbox_main_layout.addWidget(w)
-        w.repaint()
-
-
-    def get_plugin_config_widget(self, plugin_config, plugin_name):
-        # todo show difference default values vs editted
+        # todo show visual difference default values vs editted
         # todo add reset to default settings button
 
         plugin_config_widget = QtWidgets.QWidget()
@@ -153,18 +196,23 @@ class manager_UI(QtWidgets.QWidget):
         vbox.addWidget(w)
 
         self.plugin_config_widgets = []
-        for attribute_name, value in plugin_config.items():
-            #create value widget
-            widget = self.get_widget_from_attr_type(attribute_name, value)
+        for attribute_name, attribute_value in plugin_config.items():  # for every attribute
+
+            # WIDGET 1: create a widget containing the value
+            widget = self.create_widget_from_attr_type(attribute_name, attribute_value)
             if not widget:
                 continue  # skip unsupported types
-            widget.setObjectName('attr_widget_' + attribute_name)
-            widget.setProperty('attribute_name', attribute_name)
+
             self.plugin_config_widgets.append(widget)
 
-            # create name of attribute widget
+            widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
+            widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
+            # TODO data passed by name, add support for plugins with same name
+
+            # WIDGET 2: create widget for the attribute name
             attribute_name_label = QtWidgets.QLabel(attribute_name)
 
+            # layout widgets next each other
             layout_attr = QtWidgets.QHBoxLayout(plugin_config_widget)
             layout_attr.addWidget(attribute_name_label)
             layout_attr.addWidget(widget)
@@ -174,11 +222,17 @@ class manager_UI(QtWidgets.QWidget):
 
         return plugin_config_widget
 
-    def update_plugin_config_value(self):
-        sender = self.sender()
-        plugin_name = sender.parent
+    # def update_plugin_config_value(self):
+    #     sender = self.sender()
+    #     plugin_name = sender.parent
 
-    def get_widget_from_attr_type(self, attr, value):
+    def create_widget_from_attr_type(self, attr, value):
+        """
+        decide which widget to use based on the attribute type
+        :param attr:
+        :param value:
+        :return:
+        """
         w = None
         signal_func = None  # state to connect too
         if type(value) is bool:
@@ -200,7 +254,25 @@ class manager_UI(QtWidgets.QWidget):
             w = QtWidgets.QLineEdit(value)
             signal_func = w.textChanged
 
-        # elif isinstance(value, list):
+        elif isinstance(value, list):
+            # list to comma separated string
+            value_str = ''
+            for x in value:
+                if value_str:
+                    value_str += ','
+                value_str += str(x)
+            w = QtWidgets.QLineEdit(value_str)
+
+
+            # remember the type so we can convert the string back to the original type
+            # see get_value_from_widget
+            # w.setProperty('attr_type', type(value[0]))
+
+            # todo we cant recognise the type if the list is empty. bug!
+
+            signal_func = w.textChanged
+
+
         #     # todo ideally run recursive if list
         #     # TODO special widget that allows to add tags
         #     s = ''
@@ -227,35 +299,83 @@ class manager_UI(QtWidgets.QWidget):
             w = QtWidgets.QLabel(str(value))
 
         if signal_func:
-            signal_func.connect(self.update_config_from_widget)
+            signal_func.connect(self.set_plugin_config_from_widget)
         return w  # signal_func
 
-    def update_config_from_widget(self):
+    # todo create special widget for build in pyblish attributes.
+    # example: match should not be a int, but a dropdown with following values:
+    #     Subset,
+    #     Intersection,
+    #     Exact,
+
+    # order: (but also option to override)
+    # values set in pylblish.plugin.
+    #     CollectorOrder,
+    #     ValidatorOrder,
+    #     ExtractorOrder,
+    #     IntegratorOrder,
+
+    # add support to hookup actions
+    # actions display comma separated with their IDENTIFIER attribute
+    # we want to allow costumising multiple action configs, of the same action
+
+
+    def set_plugin_config_from_widget(self):
         # get current plugin config
         config = self.pipeline_config[self.current_plugin_name]
 
         for widget in self.plugin_config_widgets:
             attribute_name = widget.property('attribute_name')
             # attr_name = widget.parent().text()  # get parent labels text, this is the attribute name
-            value = self.get_value_from_widget(widget)
-            if value is not None:
-                # print('updating value', widget, value)
-                config[attribute_name] = value
+            attr_value = self.get_value_from_widget(widget)
+            if attr_value is not None:
+                config[attribute_name] = attr_value
+
+    def delete_plugin_buttons(self):
+        for button in self.plugin_buttons:
+            button.deleteLater()
 
     def get_value_from_widget(self, widget):
+        """ helper function to get the value from any type of widget """
         if type(widget) is QtWidgets.QCheckBox:
             return widget.checkState() == QtCore.Qt.Checked
         if type(widget) in (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox):
             return widget.value()
+        if type(widget) is QtWidgets.QLineEdit:
+            # if commas in text, convert to list
+            text = widget.text()
+            if ',' in text:
+                return text.split(',')
+            # todo convert to right value
+            else:
+                return text
+
+    # def load_project_config(self):
+    #     """
+    #     load UI settings from a json settings file
+    #     """
+    #     with open(self.json_path_output, 'w', encoding='utf-8') as f:
+    #         json.dump(config_data, f, indent=4)
+    #     config_data = {}
+    #     for k, v in self.pipeline_config.items():
+    #         # if self.original_pipeline_config[k] != v:
+    #         config_data[k] = {}
+    #
+    #         for k2, v2 in v.items():
+    #             if self.original_pipeline_config[k][k2] != v2:
+    #                 config_data[k][k2] = v2
 
     def save_project_config(self):
+        """
+        save UI settings into a json settings file
+        """
 
         # get differences between config and plugin settings
         # todo fix that
         #  naively assume differences can be calc between configs
         #  this wont work if we edit an already different config
 
-        # this diff is onyl needed when doing register_plugin -> discover -> plugins ->config
+        # this diff is only needed when doing register_plugin -> discover -> plugins ->config
         # when we edit an alrdy existing config we dont need to do any diffing
 
         config_data = {}
@@ -288,13 +408,17 @@ class manager_UI(QtWidgets.QWidget):
 
 def make_config():
 
-    config = get_project_config_from_discover()
+    config = get_pipeline_config_from_discover()
 
     app = QtWidgets.QApplication(sys.argv)
 
-    m = manager_UI(config)
+    m = manager_UI()
+    m.load_config(config)
+
     # m.display_config(config)
 
     m.show()
     app.exec_()
 
+# ideally all this make config stuff happens using default settings.
+# user just runs a single or 2 commands and it all runs
