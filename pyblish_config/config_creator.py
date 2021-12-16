@@ -64,18 +64,47 @@ class manager_UI(QtWidgets.QWidget):
         self.json_path_output = r"C:\Projects\pyblish-plugin-manager\output_config.json"
         self.json_path_input = ""
 
-        self.vbox_config_layout = QtWidgets.QVBoxLayout(self)  # this needs to happen before scrollarea
         self.hbox_main_layout = QtWidgets.QHBoxLayout(self)  # this needs to happen before scrollarea
-        self.config_button_layout = QtWidgets.QHBoxLayout()
-        self.scroll = self.create_widget_plugins_scroll_area()
 
-        self.widget_plugin_config = QtWidgets.QWidget(self)
+        self.create_right()
+
+        # create plugins list widget and layout
+        self.create_left()
+
+
         # self.hbox.addWidget(self.scroll)
         # self.vbox_config_layout.addLayout(self.hbox)
         # self.vbox_config_layout.addLayout(self.config_button_layout)
 
+        # apply config scroll area
+        # self.scroll_plugin_config = self.create_widget_plugin_config_scroll_area()
+
+
+        # self.hbox_main_layout.addLayout(self.vbox_config_layout)
+        self.hbox_main_layout.addWidget(self.config_main_widget) # self.config_main_widget
+        self.hbox_main_layout.addWidget(self.widget_plugin_config)  # self.widget_plugin_config
+
+        # self.vbox_main_layout.addWidget(self.config_buttons_widget)
+
+        self.setLayout(self.hbox_main_layout)
+
+    def create_left(self):
+
+        self.vbox_config_layout = QtWidgets.QVBoxLayout(self)  # this needs to happen before scrollarea
+        # create widget, apply layout, add widgets to layout.
+
+        # create config widget
         self.config_main_widget = QtWidgets.QWidget()
         self.config_main_widget.setLayout(self.vbox_config_layout)
+
+
+        self.config_button_layout = QtWidgets.QHBoxLayout()
+
+        self.widget_plugins_list = QtWidgets.QWidget(self)
+        self.vbox_plugins = QtWidgets.QVBoxLayout(self)
+        self.widget_plugins_list.setLayout(self.vbox_plugins)
+
+        self.scroll = self.create_widget_plugins_scroll_area()
 
         self.load_config_button = QtWidgets.QPushButton('load_config')
         self.save_config_button = QtWidgets.QPushButton('save_config')
@@ -88,13 +117,15 @@ class manager_UI(QtWidgets.QWidget):
         self.vbox_config_layout.addWidget(self.scroll)
         self.vbox_config_layout.addLayout(self.config_button_layout)
 
-        # self.hbox_main_layout.addLayout(self.vbox_config_layout)
-        self.hbox_main_layout.addWidget(self.config_main_widget)
-        self.hbox_main_layout.addWidget(self.widget_plugin_config)
+        return
 
-        # self.vbox_main_layout.addWidget(self.config_buttons_widget)
 
-        self.setLayout(self.hbox_main_layout)
+    def create_right(self):
+
+        self.widget_plugin_config = QtWidgets.QWidget(self)  # empty placeholder which'll contain the plugin config
+
+        # return self.config_main_widget
+
 
     def show_plugin_settings(self):
         # display  plugin settings from first plugin, prevents a weird layout change
@@ -109,19 +140,20 @@ class manager_UI(QtWidgets.QWidget):
 
     def show_plugin_config(self, plugin_name):
         """
-        handle all the fluff around showing a new plugin config widget, and create it
+        handle all the fluff around showing a new plugin config widget, and create it, delete the old one
         :param plugin_name: name of the plugin
         :return: Qt widget visualising the plugin config
         """
+        # delete old widget
+        self.hbox_main_layout.removeWidget(self.widget_plugin_config)
+        self.widget_plugin_config.deleteLater()
+        self.widget_plugin_config = None
 
         # get matching config
         plugin_config = self.pipeline_config[plugin_name]
         w = self.create_widget_plugin_config(plugin_config, plugin_name)
 
-        self.hbox_main_layout.removeWidget(self.widget_plugin_config)
-        self.widget_plugin_config.deleteLater()
-        self.widget_plugin_config = None
-        # del self.widget_plugin_config
+        # self.scroll_plugin_config = self.create_widget_plugin_config_scroll_area()
 
         self.widget_plugin_config = w
         self.hbox_main_layout.addWidget(w)
@@ -136,10 +168,9 @@ class manager_UI(QtWidgets.QWidget):
 
 
     def create_widget_plugins_scroll_area(self):
-        self.widget_plugins_list = QtWidgets.QWidget(self)
-        self.vbox_plugins = QtWidgets.QVBoxLayout(self)
-        self.widget_plugins_list.setLayout(self.vbox_plugins)
 
+
+        # create and setup scroll area with widget
         self.scroll = QtWidgets.QScrollArea(self)
         self.scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -149,6 +180,19 @@ class manager_UI(QtWidgets.QWidget):
         # self.create_plugin_buttons()
 
         return self.scroll
+
+    def create_widget_plugin_config_scroll_area(self):
+        # self.widget_plugins_list = QtWidgets.QWidget(self)
+        # self.vbox_plugins = QtWidgets.QVBoxLayout(self)
+        # self.widget_plugins_list.setLayout(self.vbox_plugins)
+
+        scroll = QtWidgets.QScrollArea(self)
+        scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        scroll.setWidgetResizable(True)
+        # scroll.setWidget( TODO)
+
+        return scroll
 
     def create_widget_plugin_buttons(self):
         for plugin_name, plugin_config in self.pipeline_config.items():
@@ -199,7 +243,7 @@ class manager_UI(QtWidgets.QWidget):
         for attribute_name, attribute_value in plugin_config.items():  # for every attribute
 
             # WIDGET 1: create a widget containing the value
-            widget = self.create_widget_from_attr_type(attribute_name, attribute_value)
+            widget = self.create_widget_from_attribute(attribute_name, attribute_value)
             if not widget:
                 continue  # skip unsupported types
 
@@ -212,10 +256,15 @@ class manager_UI(QtWidgets.QWidget):
             # WIDGET 2: create widget for the attribute name
             attribute_name_label = QtWidgets.QLabel(attribute_name)
 
+            change_type_button = QtWidgets.QPushButton('change type')
+            type_button = QtWidgets.QPushButton(str(type(attribute_value)))
+
             # layout widgets next each other
             layout_attr = QtWidgets.QHBoxLayout(plugin_config_widget)
             layout_attr.addWidget(attribute_name_label)
             layout_attr.addWidget(widget)
+            layout_attr.addWidget(change_type_button)
+            layout_attr.addWidget(type_button)
             vbox.addLayout(layout_attr)
 
         vbox.addStretch()
@@ -226,7 +275,15 @@ class manager_UI(QtWidgets.QWidget):
     #     sender = self.sender()
     #     plugin_name = sender.parent
 
-    def create_widget_from_attr_type(self, attr, value):
+    def create_widget_from_attribute(self, name, value):
+        # todo handle exceptions
+
+        # if name.lower() == 'actions':
+        #     return QtWidgets.QLabel(str(value))  # return default widget
+
+        return self.create_widget_from_attr_type(value)
+
+    def create_widget_from_attr_type(self, value):
         """
         decide which widget to use based on the attribute type
         :param attr:
@@ -256,13 +313,17 @@ class manager_UI(QtWidgets.QWidget):
 
         elif isinstance(value, list):
             # list to comma separated string
-            value_str = ''
+            if (len(value)):
+                value_str = ','
+            else:
+                value_str = ''
+
             for x in value:
-                if value_str:
+                if len(value_str) > 1:
                     value_str += ','
                 value_str += str(x)
             w = QtWidgets.QLineEdit(value_str)
-
+            signal_func = w.textChanged
 
             # remember the type so we can convert the string back to the original type
             # see get_value_from_widget
@@ -270,7 +331,12 @@ class manager_UI(QtWidgets.QWidget):
 
             # todo we cant recognise the type if the list is empty. bug!
 
-            signal_func = w.textChanged
+            # todo we cant recognise it's a list if there's no comma in the string. bug!
+            # atm we always start the string with a comma to avoid this bug
+            # see def get_value_from_widget and def create_widget_from_attr_type
+
+
+
 
 
         #     # todo ideally run recursive if list
@@ -284,6 +350,9 @@ class manager_UI(QtWidgets.QWidget):
         #     w = QtWidgets.QLineEdit(s)
         #     signal_func = w.textChanged
 
+
+
+
         elif isinstance(value, pyblish.api.Plugin):
             pass
             # w = QtWidgets.QLabel(value)
@@ -296,7 +365,7 @@ class manager_UI(QtWidgets.QWidget):
             pass
 
         else:
-            w = QtWidgets.QLabel(str(value))
+            w = QtWidgets.QLabel(str(value))  # return default widget
 
         if signal_func:
             signal_func.connect(self.set_plugin_config_from_widget)
@@ -316,9 +385,21 @@ class manager_UI(QtWidgets.QWidget):
     #     IntegratorOrder,
 
     # add support to hookup actions
-    # actions display comma separated with their IDENTIFIER attribute
+    # actions display comma separated TODO
     # we want to allow costumising multiple action configs, of the same action
 
+    # actions are meta plugins.
+    # we can use create plugin config widget to create a widget for each action
+    # we need to allow user to add and remove multiple actions
+
+    # current discovered actions
+    # browse to folder with new actions
+
+    # TODO type from attr cant be found when default value is None.
+    # this results in no support to change the widget value for this attribute
+    # ex. when label is None, we cant change the value of the label.
+    # allow user to overwrite the type of the attribute
+    # how can we add support for all types? including lists and dicts of types, and lists of lists of lists ...
 
     def set_plugin_config_from_widget(self):
         # get current plugin config
@@ -345,7 +426,7 @@ class manager_UI(QtWidgets.QWidget):
             # if commas in text, convert to list
             text = widget.text()
             if ',' in text:
-                return text.split(',')
+                return text.split(',')[1:]
             # todo convert to right value
             else:
                 return text
@@ -422,3 +503,30 @@ def make_config():
 
 # ideally all this make config stuff happens using default settings.
 # user just runs a single or 2 commands and it all runs
+
+
+# action management
+# actions get hooked up in code
+# there is no discover phase for actions
+# register / store actions somewhere
+# an action is a plugin
+# plugins can be discovered and registered
+# plugins are classes
+# plugins can be discovered by module/module_path, by class/instance/plugin_name
+
+
+# Pyblish says:
+#   action: User-supplied interactive action
+#   plugin: Base-class for plugins
+
+# but what is a plugin? a method that has meta data and gets called by the pipeline in certain conditions
+# collect, validate, publish, integrate... all "actions" taken in certain conditions
+# a plugin is a class that has a method called run, that takes this action
+
+# the main difference is: actions and plugins are used in different situations, and they contain different metadata
+# but they're mostly the same
+# so we can treat them the same, share UI config widgets, etc
+# an action can work on the plugin instance, and it's data
+
+# lets say simple action: delete node: mesh/object/material
+# runs on nodes found by the plugin

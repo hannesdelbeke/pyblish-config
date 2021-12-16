@@ -15,6 +15,16 @@ import sys
 
 class Plugin1(api.ContextPlugin):
     order = api.CollectorOrder
+    test1 = 1
+    test2 = 2
+    test3 = 3
+    test4 = 4
+    test5 = 5
+    test6 = 6
+    test7 = 7
+    test8 = 8
+    test9 = 9
+    test10 = 10
 
 class Plugin2(api.ContextPlugin):
     order = api.CollectorOrder
@@ -36,6 +46,7 @@ for name in modules_to_mock:
     sys.modules[name] = mock_module
 
 api.register_host('maya')
-api.register_plugin_path(r'C:\Projects\tonictools-ta\3rd_party_packages\pyblish_maya\plugins\plugins')  # i tossed the magenta plugins in here i know it's messy
+# api.register_plugin_path(r'C:\Projects\tonictools-ta\3rd_party_packages\pyblish_maya\plugins\plugins')  # i tossed the magenta plugins in here i know it's messy
+api.register_plugin_path(r'C:\Projects\tonictools-ta\3rd_party_packages\pyblish_maya\plugins\plugins')
 
 pyblish_config.config_creator.make_config()
