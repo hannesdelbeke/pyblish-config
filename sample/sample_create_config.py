@@ -19,7 +19,7 @@ class Plugin1(api.ContextPlugin):
 class Plugin2(api.ContextPlugin):
     order = api.CollectorOrder
 
-#api.deregister_all_paths()  # deregister default plugins for sample
+# api.deregister_all_paths()  # deregister default plugins for sample
 api.register_plugin(Plugin1)
 api.register_plugin(Plugin2)
 
@@ -35,6 +35,7 @@ modules_to_mock = ['maya', 'pyblish_magenta', 'maya.cmds', 'pyblish_magenta.api'
 for name in modules_to_mock:
     sys.modules[name] = mock_module
 
+api.register_host('maya')
 api.register_plugin_path(r'C:\Projects\tonictools-ta\3rd_party_packages\pyblish_maya\plugins\plugins')  # i tossed the magenta plugins in here i know it's messy
 
 pyblish_config.config_creator.make_config()
