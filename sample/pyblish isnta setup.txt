@@ -1,0 +1,28 @@
+install through wheel
+
+import pyblish insta
+
+======= 1 =======
+> hey i see this is your first time. you have no plugins
+> do you want to register any paths to your plugin folders?
+... browse to folder
+
+>what software do you want to support?
+maya max ....
+... installs wheels for you
+
+======= 2 =======
+> create pipeline
+.. config plug settings
+
+> install plugins from marketplace
+
+======= 3 =======
+> launch pyblish UI
+
+
+easy setup instead of learning tricky bits of pyblish, installing wheels.
+registering paths correctly
+then figure outr how UI works
+then install maya wheel
+etc....

@@ -15,10 +15,11 @@ pyblish.api.deregister_all_paths()
 
 # register my plugin
 from sample.validate_folder.CollectFilePaths import CollectFilePaths
-pyblish.api.register_plugin(CollectFilePaths)
-
 from sample.validate_folder.ValidateFilePaths import ValidateFilePaths
+
+pyblish.api.register_plugin(CollectFilePaths)
 pyblish.api.register_plugin(ValidateFilePaths)
 
-import pyblish_lite
-pyblish_lite.show()
+if __name__ == "__main__":
+    import pyblish_lite
+    pyblish_lite.show()

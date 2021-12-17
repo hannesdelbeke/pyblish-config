@@ -1,0 +1,9 @@
+{
+
+  "CollectFilePaths": {
+    "mesh_folder_path": "C:\\Projects\\pyblish-plugin-manager\\sample\\test files\\projects\\battling field SHOOTER"
+  },
+  "ValidateFilePaths": {
+    "pattern_name": "BF_*.ma"
+  }
+}
