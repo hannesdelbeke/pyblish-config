@@ -9,6 +9,12 @@ example:
 a plugin has various attributes. the json only contains a single attribute, node_type = "mesh"
 all attributes of the plugin will remain the same except for the node_type.
 
+### create a config file
+see [sample_create_config](sample/sample_create_config.py)
+
+### apply a config file
+see [sample_apply_config](sample/sample_apply_config.py)
+
 ## explicitly registering plugins
 the exception to this is the plugins registered.
 it will only use plugins matching the plugin names in the settings file

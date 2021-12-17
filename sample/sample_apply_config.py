@@ -4,7 +4,7 @@
 
 
 from pyblish import api
-from pyblish_config import register_config_filter
+from pyblish_config.config import register_config_filter
 
 
 # -------- create plugins --------
@@ -27,7 +27,7 @@ for p in api.registered_plugins():
     print(p.__name__, p.optional)
 
 # -------- register pipeline settings, ready to apply --------
-register_config_filter('sample_config.json')
+register_config_filter('config_sample.json')
 
 # -------- discover / applies config settings --------
 # discover applies our filter and returns the new plugins

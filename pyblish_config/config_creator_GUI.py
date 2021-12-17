@@ -2,54 +2,16 @@ import sys
 
 import pyblish.api
 from Qt import QtWidgets, QtCore
-from pyblish import api
-import json
 import copy
 
+from . import config
+from .config import get_pipeline_config_from_plugins
 
-skip_attr = ['repair', 'id', 'log', 'process', 'version', 'requires']
 
 # plugin config: the config/settings of a single plugin
 
 # pipeline config: the config/settings of all plugins in your pipeline, a dict of dicts of plugin configs
 # since we use names you cant have 2 plugins  with the same name
-
-
-def get_plugin_config(plugin):
-    """
-    get all attributes from the plugin class, and save them in a dict
-    :param plugin: Pyblish plugin to get settings from
-    :return: a dict containing plugin settings
-    """
-    # for every plugin, store all settings in the plugin config
-    plugin_config = {}
-    for attr in dir(plugin):
-        if not attr.startswith('_') and attr not in skip_attr:
-            value = getattr(plugin, attr)
-            plugin_config[attr] = value
-    plugin_config['__doc__'] = plugin.__doc__
-    return plugin_config
-
-
-def get_pipeline_config_from_discover():
-    """
-    get all plugin configs from all registered plugins in a single dict
-    """
-    # get all plugins from pyblish
-
-    #todo set input before we discover. ex host maya
-    # or pyblish version, see def plugins_from_module() in pyblish.plugin.py
-
-    # api.register_host('maya')  # todo change this to not rely on maya
-    # todo atm some plugins fail because of cannot import cmds from maya, when run from python
-    plugins = api.discover()
-
-    # store all plugin configs in the pipeline config
-    pipeline_config = {}
-    for plugin in plugins:
-        pipeline_config[plugin.__name__] = get_plugin_config(plugin)
-
-    return pipeline_config
 
 
 class manager_UI(QtWidgets.QWidget):
@@ -457,46 +419,28 @@ class manager_UI(QtWidgets.QWidget):
         """
         save UI settings into a json settings file
         """
-
-        # get differences between config and plugin settings
-        # todo fix that
-        #  naively assume differences can be calc between configs
-        #  this wont work if we edit an already different config
-
-        # this diff is only needed when doing register_plugin -> discover -> plugins ->config
-        # when we edit an alrdy existing config we dont need to do any diffing
-
-        config_data = {}
-        for k, v in self.pipeline_config.items():
-            # if self.original_pipeline_config[k] != v:
-            config_data[k] = {}
-
-            for k2, v2 in v.items():
-                if self.original_pipeline_config[k][k2] != v2:
-                    config_data[k][k2] = v2
-
-            # config_data[k] = v
-
-        # set(self.pipeline_config)
-        # print(set(self.pipeline_config))
-        # print(self.pipeline_config)
-        # print(list(self.pipeline_config.items()))
-        # set(self.pipeline_config.items())
-        # difference = set(self.pipeline_config.items()) ^ set(self.original_pipeline_config.items())
-        # config_data = dict(difference)
-
-
-        # save self.pipeline_config to json
-        with open(self.json_path_output, 'w', encoding='utf-8') as f:
-            json.dump(config_data, f, indent=4)
+        config_data = config.diff_configs(self.pipeline_config, self.original_pipeline_config)
+        config.save_config(self.json_path_output, config_data)
 
 
 # todo would be cool if pipeline didnt just filter but also saved locations to paths of plugins
 
 
-def make_config():
 
-    config = get_pipeline_config_from_discover()
+def make_config(discover=True):
+    if discover:
+
+        # get all plugins from pyblish
+
+        # support creating a pipeline for specific hosts. ex a maya pipeline
+        # todo set input before we discover. ex host maya
+        # or pyblish version, see def plugins_from_module() in pyblish.plugin.py
+
+        # api.register_host('maya')  # todo change this to not rely on maya
+        # todo atm some plugins fail because of cannot import cmds from maya, when run from python
+
+        plugins = api.discover()
+        config = get_pipeline_config_from_plugins(plugins)
 
     app = QtWidgets.QApplication(sys.argv)
 
