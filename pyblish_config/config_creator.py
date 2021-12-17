@@ -135,7 +135,7 @@ class manager_UI(QtWidgets.QWidget):
         return widget_container  # empty placeholder which'll contain the plugin config
 
 
-    def show_plugin_settings(self):
+    def show_config_first_plugin(self):
         # display  plugin settings from first plugin, prevents a weird layout change
         if self.plugin_buttons:
             plugin_name = self.plugin_buttons[0].text()
@@ -176,7 +176,7 @@ class manager_UI(QtWidgets.QWidget):
         self.create_widget_plugin_buttons()
 
         # config screen
-        self.show_plugin_settings()
+        self.show_config_first_plugin()
 
     def create_widget_scroll_area(self, widget):
         """
@@ -233,10 +233,14 @@ class manager_UI(QtWidgets.QWidget):
         vbox = QtWidgets.QVBoxLayout(plugin_config_widget)
         plugin_config_widget.setLayout(vbox)
 
+        # create title widget
         self.current_plugin_name = plugin_name
         w = QtWidgets.QLabel(plugin_name)  # get name plugin
         vbox.addWidget(w)
 
+        # todo move scroll from show_plugin_config to here
+
+        # create attribute widgets
         self.plugin_config_widgets = []
         for attribute_name, attribute_value in plugin_config.items():  # for every attribute
 
@@ -254,16 +258,18 @@ class manager_UI(QtWidgets.QWidget):
             # WIDGET 2: create widget for the attribute name
             attribute_name_label = QtWidgets.QLabel(attribute_name)
 
-            change_type_button = QtWidgets.QPushButton('change type')
-            type_button = QtWidgets.QPushButton(str(type(attribute_value)))
 
             # layout widgets next each other
             layout_attr = QtWidgets.QHBoxLayout(plugin_config_widget)
             layout_attr.addWidget(attribute_name_label)
             layout_attr.addWidget(widget)
-            layout_attr.addWidget(change_type_button)
-            layout_attr.addWidget(type_button)
             vbox.addLayout(layout_attr)
+
+            # todo WIP buttons to change type for attribute, incase we cant find type from value. ex. empty value.
+            # change_type_button = QtWidgets.QPushButton('change type')
+            # type_button = QtWidgets.QPushButton(str(type(attribute_value)))
+            # layout_attr.addWidget(change_type_button)
+            # layout_attr.addWidget(type_button)
 
         vbox.addStretch()
 
