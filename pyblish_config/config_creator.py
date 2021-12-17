@@ -88,12 +88,14 @@ class manager_UI(QtWidgets.QWidget):
         widget = QtWidgets.QWidget()
         widget.setLayout(self.vbox_config_layout)
 
-        self.config_button_layout = QtWidgets.QHBoxLayout()
-
         self.widget_plugins_list = QtWidgets.QWidget(self)
         self.vbox_plugins = QtWidgets.QVBoxLayout(self)
         self.widget_plugins_list.setLayout(self.vbox_plugins)
 
+        # self.config_button_layout = QtWidgets.QHBoxLayout()
+        # self.config_button_layout.addWidget(self.load_config_button)
+        # self.config_button_layout.addWidget(self.save_config_button)
+        #
         # create scroll area
         widget_scroll = self.create_widget_scroll_area(self.widget_plugins_list)
 
@@ -103,6 +105,7 @@ class manager_UI(QtWidgets.QWidget):
         # self.load_config_button.clicked.connect(self.show_plugin_config)
         self.save_config_button.clicked.connect(self.save_project_config)
 
+        self.config_button_layout = QtWidgets.QHBoxLayout()
         self.config_button_layout.addWidget(self.load_config_button)
         self.config_button_layout.addWidget(self.save_config_button)
 
@@ -282,8 +285,8 @@ class manager_UI(QtWidgets.QWidget):
     def create_widget_from_attribute(self, name, value):
         # todo handle exceptions
 
-        # if name.lower() == 'actions':
-        #     return QtWidgets.QLabel(str(value))  # return default widget
+        if name.lower() == 'actions':
+            return QtWidgets.QLabel(str(value))  # return default widget
 
         return self.create_widget_from_attr_type(value)
 

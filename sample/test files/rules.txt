@@ -1,0 +1,36 @@
+project 1:
+- mesh name ends in mesh
+- objects start with obj
+- characters start with char
+
+char collector
+obj collector
+
+char bob
+char bob mesh
+
+obj car
+obj car mesh
+
+obj gun
+gun mesh
+
+obj pistol
+pistol mesh
+
+gun and pistol are missing obj, wont be collected.
+1. first validate scenes. 
+- fix broken scenes
+
+3. then validate meshes
+- fix broken meshes
+
+
+2 projects BF and FF
+share plugins between them with different settings
+- collect meshes by name
+- validation on meshes with generic plugins
+ideally soime valiudation is different per project. ex max polycount
+if found over polycount LOD it with simplygon
+
+if a plugin is not optional in your pipeline. mainly reusablility. if author didnt set plug to optional but you want it optional. now you need to change code.

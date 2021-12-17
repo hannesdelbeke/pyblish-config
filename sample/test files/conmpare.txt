@@ -1,0 +1,13 @@
+pyblish starter:
+- scene contains data for plugins.
+ex a selection group start.model, tells the plugin what to collect for the model instances
+see http://pyblish.com/pyblish-starter/
+
+disadvantage: 
+- need tools to maintain/create this.
+or manually keep selection group up to date.
+- requires you to alter scene with metadata
+
+compare with:
+data for plugins lives outside maya
+- aim is an easier workflow and no changes to original scenes if possible.
