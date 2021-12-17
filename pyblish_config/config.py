@@ -8,6 +8,14 @@ import json
 skip_attr = ['repair', 'id', 'log', 'process', 'version', 'requires']
 
 
+# plugin config: the config/settings of a single plugin
+
+# pipeline config: the config/settings of all plugins in your pipeline, a dict of dicts of plugin configs
+# since we use names you cant have 2 plugins  with the same name
+
+# when it just says config this likely is pipeline config
+
+
 def register_config_filter(config_path=None, config_dict=None):
     """
     register a plugin settings filter from a settings file,
@@ -55,12 +63,12 @@ def register_config_filter(config_path=None, config_dict=None):
 
 
 def save_config(path, config_data):
-    # save self.pipeline_config to json
+    """save a config to a json. can be used on both pipeline and plugin configs"""
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=4)
 
 
-def diff_configs(config_new, config_original):
+def diff_pipeline_configs(config_new, config_original):
     # get differences between config and plugin settings
     # todo fix that
     #  naively assume differences can be calc between configs

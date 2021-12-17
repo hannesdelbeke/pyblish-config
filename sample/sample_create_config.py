@@ -12,7 +12,6 @@ import pyblish_config.config_creator_GUI
 import types
 import sys
 
-
 class Plugin1(api.ContextPlugin):
     order = api.CollectorOrder
     test1 = 1

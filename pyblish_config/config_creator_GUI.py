@@ -8,11 +8,6 @@ from . import config
 from .config import get_pipeline_config_from_plugins
 
 
-# plugin config: the config/settings of a single plugin
-
-# pipeline config: the config/settings of all plugins in your pipeline, a dict of dicts of plugin configs
-# since we use names you cant have 2 plugins  with the same name
-
 
 class manager_UI(QtWidgets.QWidget):
 
@@ -419,7 +414,7 @@ class manager_UI(QtWidgets.QWidget):
         """
         save UI settings into a json settings file
         """
-        config_data = config.diff_configs(self.pipeline_config, self.original_pipeline_config)
+        config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
         config.save_config(self.json_path_output, config_data)
 
 
@@ -439,7 +434,7 @@ def make_config(discover=True):
         # api.register_host('maya')  # todo change this to not rely on maya
         # todo atm some plugins fail because of cannot import cmds from maya, when run from python
 
-        plugins = api.discover()
+        plugins = pyblish.api.discover()
         config = get_pipeline_config_from_plugins(plugins)
 
     app = QtWidgets.QApplication(sys.argv)
