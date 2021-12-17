@@ -64,25 +64,16 @@ class manager_UI(QtWidgets.QWidget):
         self.json_path_output = r"C:\Projects\pyblish-plugin-manager\output_config.json"
         self.json_path_input = ""
 
-        self.hbox_main_layout = QtWidgets.QHBoxLayout(self)  # this needs to happen before scrollarea
-
-        self.create_right()
-
         # create plugins list widget and layout
-        self.create_left()
+        self.widget_plugins_list = self.create_left()
 
+        # create plugin settings widget
+        self.widget_plugin_config_container_main = self.create_right()
 
-        # self.hbox.addWidget(self.scroll)
-        # self.vbox_config_layout.addLayout(self.hbox)
-        # self.vbox_config_layout.addLayout(self.config_button_layout)
-
-        # apply config scroll area
-        # self.scroll_plugin_config = self.create_widget_plugin_config_scroll_area()
-
-
-        # self.hbox_main_layout.addLayout(self.vbox_config_layout)
-        self.hbox_main_layout.addWidget(self.config_main_widget) # self.config_main_widget
-        self.hbox_main_layout.addWidget(self.widget_plugin_config)  # self.widget_plugin_config
+        # Layout left and right widgets
+        self.hbox_main_layout = QtWidgets.QHBoxLayout(self)
+        self.hbox_main_layout.addWidget(self.widget_plugins_list)  # self.config_main_widget
+        self.hbox_main_layout.addWidget(self.widget_plugin_config_container_main)  # self.widget_plugin_config
 
         # self.vbox_main_layout.addWidget(self.config_buttons_widget)
 
@@ -94,9 +85,8 @@ class manager_UI(QtWidgets.QWidget):
         # create widget, apply layout, add widgets to layout.
 
         # create config widget
-        self.config_main_widget = QtWidgets.QWidget()
-        self.config_main_widget.setLayout(self.vbox_config_layout)
-
+        widget = QtWidgets.QWidget()
+        widget.setLayout(self.vbox_config_layout)
 
         self.config_button_layout = QtWidgets.QHBoxLayout()
 
@@ -104,8 +94,10 @@ class manager_UI(QtWidgets.QWidget):
         self.vbox_plugins = QtWidgets.QVBoxLayout(self)
         self.widget_plugins_list.setLayout(self.vbox_plugins)
 
-        self.scroll = self.create_widget_plugins_scroll_area()
+        # create scroll area
+        widget_scroll = self.create_widget_scroll_area(self.widget_plugins_list)
 
+        # create config buttons
         self.load_config_button = QtWidgets.QPushButton('load_config')
         self.save_config_button = QtWidgets.QPushButton('save_config')
         # self.load_config_button.clicked.connect(self.show_plugin_config)
@@ -114,17 +106,33 @@ class manager_UI(QtWidgets.QWidget):
         self.config_button_layout.addWidget(self.load_config_button)
         self.config_button_layout.addWidget(self.save_config_button)
 
-        self.vbox_config_layout.addWidget(self.scroll)
+        self.vbox_config_layout.addWidget(widget_scroll)
         self.vbox_config_layout.addLayout(self.config_button_layout)
 
-        return
+        return widget
 
 
     def create_right(self):
 
-        self.widget_plugin_config = QtWidgets.QWidget(self)  # empty placeholder which'll contain the plugin config
+        # create placeholder
+        self.widget_plugin_config = QtWidgets.QWidget(self)
 
-        # return self.config_main_widget
+        # create main container
+        widget_container = QtWidgets.QWidget()
+        layout_plugin_config_main_container = QtWidgets.QVBoxLayout(self)
+        widget_container.setLayout(layout_plugin_config_main_container)
+
+        # create secondary container: self.layout_plugin_config_container
+        widget_container2 = QtWidgets.QWidget()
+        self.layout_plugin_config_container = QtWidgets.QVBoxLayout(self)
+        widget_container2.setLayout(self.layout_plugin_config_container)
+        layout_plugin_config_main_container.addWidget(widget_container2)
+
+        # create scroll, which contains secondary container
+        widget_scroll = self.create_widget_scroll_area(widget_container2)
+        layout_plugin_config_main_container.addWidget(widget_scroll)
+
+        return widget_container  # empty placeholder which'll contain the plugin config
 
 
     def show_plugin_settings(self):
@@ -144,53 +152,43 @@ class manager_UI(QtWidgets.QWidget):
         :param plugin_name: name of the plugin
         :return: Qt widget visualising the plugin config
         """
-        # delete old widget
-        self.hbox_main_layout.removeWidget(self.widget_plugin_config)
-        self.widget_plugin_config.deleteLater()
-        self.widget_plugin_config = None
 
         # get matching config
         plugin_config = self.pipeline_config[plugin_name]
         w = self.create_widget_plugin_config(plugin_config, plugin_name)
 
-        # self.scroll_plugin_config = self.create_widget_plugin_config_scroll_area()
+        # delete old widget
+        self.hbox_main_layout.removeWidget(self.widget_plugin_config)
+        self.widget_plugin_config.deleteLater()
+        self.widget_plugin_config = None
 
         self.widget_plugin_config = w
-        self.hbox_main_layout.addWidget(w)
+        self.layout_plugin_config_container.addWidget(self.widget_plugin_config)
+
         w.repaint()
 
     def load_config(self, pipeline_config):
         self.original_pipeline_config = copy.deepcopy(pipeline_config)
         self.pipeline_config = copy.deepcopy(pipeline_config)  # pipeline_config
+
+        # plugin screen
         self.delete_plugin_buttons()
         self.create_widget_plugin_buttons()
+
+        # config screen
         self.show_plugin_settings()
 
-
-    def create_widget_plugins_scroll_area(self):
-
-
-        # create and setup scroll area with widget
-        self.scroll = QtWidgets.QScrollArea(self)
-        self.scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setWidget(self.widget_plugins_list)
-
-        # self.create_plugin_buttons()
-
-        return self.scroll
-
-    def create_widget_plugin_config_scroll_area(self):
-        # self.widget_plugins_list = QtWidgets.QWidget(self)
-        # self.vbox_plugins = QtWidgets.QVBoxLayout(self)
-        # self.widget_plugins_list.setLayout(self.vbox_plugins)
-
+    def create_widget_scroll_area(self, widget):
+        """
+        wrap a widget in a scroll area
+        :param widget: widget to be wrapped
+        :return: scroll area containing the widget
+        """
         scroll = QtWidgets.QScrollArea(self)
         scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         scroll.setWidgetResizable(True)
-        # scroll.setWidget( TODO)
+        scroll.setWidget(widget)
 
         return scroll
 
