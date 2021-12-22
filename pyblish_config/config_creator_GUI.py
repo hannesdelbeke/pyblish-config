@@ -8,13 +8,22 @@ from . import config
 from .config import get_pipeline_config_from_plugins
 
 
+class plugin_widget(object):
+    def __init__(self, pyblish_plugin, widget):
+        # object.__init__(self)
+
+        self.name = ""
+
+
+
+
 
 class manager_UI(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
-        self.plugin_buttons = []
+        self.widgets_plugin_buttons = []
         self.pipeline_config = {}
         # self.original_pipeline_config = copy.deepcopy(pipeline_config)
 
@@ -22,7 +31,7 @@ class manager_UI(QtWidgets.QWidget):
         self.json_path_input = ""
 
         # create plugins list widget and layout
-        self.widget_plugins_list = self.create_left()
+        self.widget_plugins_list = self.create_left()   # the scroll list that contains the plugin buttons
 
         # create plugin settings widget
         self.widget_plugin_config_container_main = self.create_right()
@@ -45,16 +54,16 @@ class manager_UI(QtWidgets.QWidget):
         widget = QtWidgets.QWidget()
         widget.setLayout(self.vbox_config_layout)
 
-        self.widget_plugins_list = QtWidgets.QWidget(self)
+        w = QtWidgets.QWidget(self)
         self.vbox_plugins = QtWidgets.QVBoxLayout(self)
-        self.widget_plugins_list.setLayout(self.vbox_plugins)
+        w.setLayout(self.vbox_plugins)
 
         # self.config_button_layout = QtWidgets.QHBoxLayout()
         # self.config_button_layout.addWidget(self.load_config_button)
         # self.config_button_layout.addWidget(self.save_config_button)
         #
         # create scroll area
-        widget_scroll = self.create_widget_scroll_area(self.widget_plugins_list)
+        widget_scroll = self.create_widget_scroll_area(w)
 
         # create config buttons
         self.load_config_button = QtWidgets.QPushButton('load_config')
@@ -97,8 +106,8 @@ class manager_UI(QtWidgets.QWidget):
 
     def show_config_first_plugin(self):
         # display  plugin settings from first plugin, prevents a weird layout change
-        if self.plugin_buttons:
-            plugin_name = self.plugin_buttons[0].text()
+        if self.widgets_plugin_buttons:
+            plugin_name = self.widgets_plugin_buttons[0].text()
             self.show_plugin_config(plugin_name)
 
     def show_clicked_plugin_config(self, *args):
@@ -121,6 +130,8 @@ class manager_UI(QtWidgets.QWidget):
         self.hbox_main_layout.removeWidget(self.widget_plugin_config)
         self.widget_plugin_config.deleteLater()
         self.widget_plugin_config = None
+
+        # TODO color any differences
 
         self.widget_plugin_config = w
         self.layout_plugin_config_container.addWidget(self.widget_plugin_config)
@@ -161,7 +172,7 @@ class manager_UI(QtWidgets.QWidget):
 
             button = QtWidgets.QPushButton(plugin_name, self.widget_plugins_list)
             button.clicked.connect(self.show_clicked_plugin_config)
-            self.plugin_buttons.append(button)
+            self.widgets_plugin_buttons.append(button)
 
             layout = QtWidgets.QHBoxLayout(self)
             layout.addWidget(w)
@@ -173,7 +184,7 @@ class manager_UI(QtWidgets.QWidget):
 
     def create_widget_plugin_config(self, plugin_config, plugin_name):
         """
-        create a widget for the plugin config
+        create the setting screen for the plugin you selected
 
         ------------------- -------------------
         | attribute_1_name | attribute_1_value |
@@ -186,7 +197,7 @@ class manager_UI(QtWidgets.QWidget):
         :return: the plugin config widget
         """
 
-        # todo show visual difference default values vs editted
+        # todo show visual difference default values vs editted, see self.color_widget
         # todo add reset to default settings button
 
         plugin_config_widget = QtWidgets.QWidget()
@@ -201,29 +212,27 @@ class manager_UI(QtWidgets.QWidget):
         # todo move scroll from show_plugin_config to here
 
         # create attribute widgets
-        self.plugin_config_widgets = []
+        self.current_plugin_attributes_widgets = []  # list of attribute widgets
         for attribute_name, attribute_value in plugin_config.items():  # for every attribute
 
             # WIDGET 1: create a widget containing the value
             widget = self.create_widget_from_attribute(attribute_name, attribute_value)
             if not widget:
                 continue  # skip unsupported types
-
-            self.plugin_config_widgets.append(widget)
-
             widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
             widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
-            # TODO data passed by name, add support for plugins with same name
+            # TODO data passed by name, add support for plugins with same
+            self.current_plugin_attributes_widgets.append(widget)
 
             # WIDGET 2: create widget for the attribute name
             attribute_name_label = QtWidgets.QLabel(attribute_name)
-
 
             # layout widgets next each other
             layout_attr = QtWidgets.QHBoxLayout(plugin_config_widget)
             layout_attr.addWidget(attribute_name_label)
             layout_attr.addWidget(widget)
             vbox.addLayout(layout_attr)
+            # Todo link widget to label and plugin parent widget (button)
 
             # todo WIP buttons to change type for attribute, incase we cant find type from value. ex. empty value.
             # change_type_button = QtWidgets.QPushButton('change type')
@@ -239,13 +248,36 @@ class manager_UI(QtWidgets.QWidget):
     #     sender = self.sender()
     #     plugin_name = sender.parent
 
+    def color_widget(self, widget):
+        # color the widget and the matching plugin
+
+        original_config = self.original_pipeline_config[self.current_plugin_name]
+
+        # todo this doesnt aply when swapping plugin config screens
+        # todo color the plugin button too (parent)
+        # color widget when changed
+        original_value = original_config[attribute_name]
+        value_changed = original_value != attr_value
+        if value_changed:
+            widget.setStyleSheet("background-color: rgb(255, 200, 100);")
+        else:
+            widget.setStyleSheet("")
+        # todo set label to red isntead of widget
+
+
     def create_widget_from_attribute(self, name, value):
+        """
+        Create a widget to edit the attribute.
+        Add the attribute name to the widget as a property: attribute_name
+        """
         # todo handle exceptions
 
         if name.lower() == 'actions':
             return QtWidgets.QLabel(str(value))  # return default widget
 
-        return self.create_widget_from_attr_type(value)
+        widget = self.create_widget_from_attr_type(value)
+        # widget.setProperty('attribute_name', name)
+        return widget
 
     def create_widget_from_attr_type(self, value):
         """
@@ -366,30 +398,24 @@ class manager_UI(QtWidgets.QWidget):
     # how can we add support for all types? including lists and dicts of types, and lists of lists of lists ...
 
     def set_plugin_config_from_widget(self):
+        """
+        this function runs when changing an attribute widget,
+        for every attribute widget of the current plugin,
+        we get the value and save it in the config dict: self.pipeline_config
+        """
         # get current plugin config
-        config = self.pipeline_config[self.current_plugin_name]
-        original_config = self.original_pipeline_config[self.current_plugin_name]
+        config = self.pipeline_config[self.current_plugin_name]  # todo move to getter setter
 
-        for widget in self.plugin_config_widgets:
-            attribute_name = widget.property('attribute_name')
+        for attribute_widget in self.current_plugin_attributes_widgets:
+            attribute_name = attribute_widget.property('attribute_name')  # todo move this to a class, objOriented setup
             # attr_name = widget.parent().text()  # get parent labels text, this is the attribute name
-            attr_value = self.get_value_from_widget(widget)
-            if attr_value is not None:  # todo will bug if value is supposed to be None in settings
-
-                # color widget when changed
-                original_value = original_config[attribute_name]
-                value_changed = original_value != attr_value
-                if value_changed:
-                    widget.setStyleSheet("background-color: rgb(255, 200, 100);")
-                else:
-                    widget.setStyleSheet("")
-                # todo set label to red isntead of widget
-
+            attribute_value = self.get_value_from_widget(attribute_widget)
+            if attribute_value is not None:  # todo will bug if value is supposed to be None in settings
                 # save value from widget in the config
-                config[attribute_name] = attr_value
+                config[attribute_name] = attribute_value
 
     def delete_plugin_buttons(self):
-        for button in self.plugin_buttons:
+        for button in self.widgets_plugin_buttons:
             button.deleteLater()
 
     def get_value_from_widget(self, widget):
