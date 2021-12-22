@@ -23,18 +23,16 @@ class manager_UI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
-        self.widgets_plugin_buttons = []
         self.pipeline_config = {}
-        # self.original_pipeline_config = copy.deepcopy(pipeline_config)
-
-        self.json_path_output = r"C:\Projects\pyblish-plugin-manager\output_config.json"
+        self.json_path_output = r"C:\Projects\pyblish-plugin-manager\output_config.json"  # todo remove hardcoded path
         self.json_path_input = ""
 
         # create plugins list widget and layout
+        self.widgets_plugin_buttons = []
         self.widget_plugins_list = self.create_left()   # the scroll list that contains the plugin buttons
 
         # create plugin settings widget
-        self.widget_plugin_config_container_main = self.create_right()
+        self.widget_plugin_config_container_main = self.create_right()  # sets up more self. variables inside method
 
         # Layout left and right widgets
         self.hbox_main_layout = QtWidgets.QHBoxLayout(self)
@@ -63,7 +61,7 @@ class manager_UI(QtWidgets.QWidget):
         # self.config_button_layout.addWidget(self.save_config_button)
         #
         # create scroll area
-        widget_scroll = self.create_widget_scroll_area(w)
+        widget_scroll = self.wrap_widget_in_scroll_area(w)
 
         # create config buttons
         self.load_config_button = QtWidgets.QPushButton('load_config')
@@ -82,6 +80,13 @@ class manager_UI(QtWidgets.QWidget):
 
 
     def create_right(self):
+        """
+        first container is the whole attribute settings window.
+
+        second container is the scrollable widget we add all attribute widgets too
+        self.layout_plugin_config_container, this is the widget that contains the attribute widgets
+        :return:
+        """
 
         # create placeholder
         self.widget_plugin_config = QtWidgets.QWidget(self)
@@ -91,14 +96,13 @@ class manager_UI(QtWidgets.QWidget):
         layout_plugin_config_main_container = QtWidgets.QVBoxLayout(self)
         widget_container.setLayout(layout_plugin_config_main_container)
 
-        # create secondary container: self.layout_plugin_config_container
+        # create second container: self.layout_plugin_config_container
         widget_container2 = QtWidgets.QWidget()
         self.layout_plugin_config_container = QtWidgets.QVBoxLayout(self)
         widget_container2.setLayout(self.layout_plugin_config_container)
-        layout_plugin_config_main_container.addWidget(widget_container2)
 
-        # create scroll, which contains secondary container
-        widget_scroll = self.create_widget_scroll_area(widget_container2)
+        # wrap the second container in a scroll area
+        widget_scroll = self.wrap_widget_in_scroll_area(widget_container2)
         layout_plugin_config_main_container.addWidget(widget_scroll)
 
         return widget_container  # empty placeholder which'll contain the plugin config
@@ -126,17 +130,20 @@ class manager_UI(QtWidgets.QWidget):
         plugin_config = self.pipeline_config[plugin_name]
         w = self.create_widget_plugin_config(plugin_config, plugin_name)
 
+
         # delete old widget
         self.hbox_main_layout.removeWidget(self.widget_plugin_config)
         self.widget_plugin_config.deleteLater()
         self.widget_plugin_config = None
 
-        # TODO color any differences
 
         self.widget_plugin_config = w
         self.layout_plugin_config_container.addWidget(self.widget_plugin_config)
 
         w.repaint()
+
+        self.color_attribute_widgets()
+
 
     def load_config(self, pipeline_config):
         self.original_pipeline_config = copy.deepcopy(pipeline_config)
@@ -149,7 +156,7 @@ class manager_UI(QtWidgets.QWidget):
         # config screen
         self.show_config_first_plugin()
 
-    def create_widget_scroll_area(self, widget):
+    def wrap_widget_in_scroll_area(self, widget):
         """
         wrap a widget in a scroll area
         :param widget: widget to be wrapped
@@ -216,13 +223,13 @@ class manager_UI(QtWidgets.QWidget):
         for attribute_name, attribute_value in plugin_config.items():  # for every attribute
 
             # WIDGET 1: create a widget containing the value
-            widget = self.create_widget_from_attribute(attribute_name, attribute_value)
-            if not widget:
+            attribute_widget = self.create_widget_from_attribute(attribute_name, attribute_value)
+            if not attribute_widget:
                 continue  # skip unsupported types
-            widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
-            widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
+            attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
+            attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
             # TODO data passed by name, add support for plugins with same
-            self.current_plugin_attributes_widgets.append(widget)
+            self.current_plugin_attributes_widgets.append(attribute_widget)
 
             # WIDGET 2: create widget for the attribute name
             attribute_name_label = QtWidgets.QLabel(attribute_name)
@@ -230,7 +237,7 @@ class manager_UI(QtWidgets.QWidget):
             # layout widgets next each other
             layout_attr = QtWidgets.QHBoxLayout(plugin_config_widget)
             layout_attr.addWidget(attribute_name_label)
-            layout_attr.addWidget(widget)
+            layout_attr.addWidget(attribute_widget)
             vbox.addLayout(layout_attr)
             # Todo link widget to label and plugin parent widget (button)
 
@@ -248,22 +255,74 @@ class manager_UI(QtWidgets.QWidget):
     #     sender = self.sender()
     #     plugin_name = sender.parent
 
-    def color_widget(self, widget):
+
+
+
+
+    def color_attribute_widgets(self):
+        any_value_changed = False
+        for w in self.current_plugin_attributes_widgets:
+            value_changed = self._color_attribute_widget(w)
+            any_value_changed = any_value_changed or value_changed
+
+        if any_value_changed:
+            pass
+            # color the plugin too
+    # todo
+
+
+    def _color_widget(self, widget, value_changed):
+        if value_changed:
+            widget.setStyleSheet("background-color: rgb(255, 200, 100);")
+        else:
+            widget.setStyleSheet("")
+
+
+    def _color_attribute_widget(self, attribute_widget):
         # color the widget and the matching plugin
 
         original_config = self.original_pipeline_config[self.current_plugin_name]
+
+        attribute_name = attribute_widget.property('attribute_name')
+        attribute_value = self.get_value_from_widget(attribute_widget)
 
         # todo this doesnt aply when swapping plugin config screens
         # todo color the plugin button too (parent)
         # color widget when changed
         original_value = original_config[attribute_name]
-        value_changed = original_value != attr_value
-        if value_changed:
-            widget.setStyleSheet("background-color: rgb(255, 200, 100);")
-        else:
-            widget.setStyleSheet("")
+        value_changed = original_value != attribute_value
+
+        self._color_widget(attribute_widget, value_changed)
         # todo set label to red isntead of widget
 
+        return value_changed
+
+    def color_plugin_widgets(self):
+        for plugin_widget in self.widgets_plugin_buttons:
+
+            # check if value changed
+            value_changed = False
+
+            plugin_name = plugin_widget.text()
+            original_config = self.original_pipeline_config[plugin_name]
+            current_config = self.pipeline_config[plugin_name]
+
+            for key, value in current_config.items():
+                if original_config[key] != value:
+                    value_changed = True
+                    # print(key, original_config[key], value)
+                    break
+
+            # attribute_name = attribute_widget.property('attribute_name')
+            # attribute_value = self.get_value_from_widget(attribute_widget)
+
+            # todo this doesnt aply when swapping plugin config screens
+            # todo color the plugin button too (parent)
+            # color widget when changed
+            # original_value = original_config[attribute_name]
+            # value_changed = original_value != attribute_value
+
+            self._color_widget(plugin_widget, value_changed)
 
     def create_widget_from_attribute(self, name, value):
         """
@@ -413,6 +472,9 @@ class manager_UI(QtWidgets.QWidget):
             if attribute_value is not None:  # todo will bug if value is supposed to be None in settings
                 # save value from widget in the config
                 config[attribute_name] = attribute_value
+
+        self.color_attribute_widgets()  # update colors when changing the widget
+        self.color_plugin_widgets()
 
     def delete_plugin_buttons(self):
         for button in self.widgets_plugin_buttons:
