@@ -374,7 +374,7 @@ class manager_UI(QtWidgets.QWidget):
             attribute_name = widget.property('attribute_name')
             # attr_name = widget.parent().text()  # get parent labels text, this is the attribute name
             attr_value = self.get_value_from_widget(widget)
-            if attr_value is not None:
+            if attr_value is not None:  # todo will bug if value is supposed to be None in settings
 
                 # color widget when changed
                 original_value = original_config[attribute_name]
