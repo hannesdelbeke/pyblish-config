@@ -368,12 +368,24 @@ class manager_UI(QtWidgets.QWidget):
     def set_plugin_config_from_widget(self):
         # get current plugin config
         config = self.pipeline_config[self.current_plugin_name]
+        original_config = self.original_pipeline_config[self.current_plugin_name]
 
         for widget in self.plugin_config_widgets:
             attribute_name = widget.property('attribute_name')
             # attr_name = widget.parent().text()  # get parent labels text, this is the attribute name
             attr_value = self.get_value_from_widget(widget)
             if attr_value is not None:
+
+                # color widget when changed
+                original_value = original_config[attribute_name]
+                value_changed = original_value != attr_value
+                if value_changed:
+                    widget.setStyleSheet("background-color: rgb(255, 200, 100);")
+                else:
+                    widget.setStyleSheet("")
+                # todo set label to red isntead of widget
+
+                # save value from widget in the config
                 config[attribute_name] = attr_value
 
     def delete_plugin_buttons(self):
