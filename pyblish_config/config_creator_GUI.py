@@ -78,6 +78,14 @@ class manager_UI(QtWidgets.QWidget):
 
         return widget
 
+    def _open_qfiledialog(self):
+        """
+        Used to browse to the save location for the config
+        """
+        title = "save config file"
+        file_types = "Json (*.json)"
+        root_folder = ""
+        return QtWidgets.QFileDialog.getOpenFileName(self, title, root_folder, file_types)[0]
 
     def create_right(self):
         """
@@ -501,6 +509,16 @@ class manager_UI(QtWidgets.QWidget):
         """
         save UI settings into a json settings file
         """
+
+        # get path
+
+        browsed_path = self._open_qfiledialog().replace("/", "\\")
+        if browsed_path:
+            self.json_path_output = browsed_path
+            print(browsed_path)
+        else:
+            print("cancelled browse")
+
         config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
         config.save_config(self.json_path_output, config_data)
 
@@ -563,3 +581,6 @@ def make_config(discover=True):
 
 # lets say simple action: delete node: mesh/object/material
 # runs on nodes found by the plugin
+
+
+
