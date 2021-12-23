@@ -368,10 +368,7 @@ class manager_UI(QtWidgets.QWidget):
 
         elif isinstance(value, list):
             # list to comma separated string
-            if (len(value)):
-                value_str = ','
-            else:
-                value_str = ''
+            value_str = ''
 
             for x in value:
                 if len(value_str) > 1:
@@ -382,30 +379,12 @@ class manager_UI(QtWidgets.QWidget):
 
             # remember the type so we can convert the string back to the original type
             # see get_value_from_widget
-            # w.setProperty('attr_type', type(value[0]))
-
+            # w.setProperty('attribute_type', type(value))
             # todo we cant recognise the type if the list is empty. bug!
-
-            # todo we cant recognise it's a list if there's no comma in the string. bug!
-            # atm we always start the string with a comma to avoid this bug
-            # see def get_value_from_widget and def create_widget_from_attr_type
-
-
-
 
 
         #     # todo ideally run recursive if list
         #     # TODO special widget that allows to add tags
-        #     s = ''
-        #     for x in value:
-        #         if s:
-        #             s += ', '
-        #         s += str(x)
-        #
-        #     w = QtWidgets.QLineEdit(s)
-        #     signal_func = w.textChanged
-
-
 
 
         elif isinstance(value, pyblish.api.Plugin):
@@ -421,6 +400,8 @@ class manager_UI(QtWidgets.QWidget):
 
         else:
             w = QtWidgets.QLabel(str(value))  # return default widget
+
+        w.setProperty('attribute_type', type(value))
 
         if signal_func:
             signal_func.connect(self.set_plugin_config_from_widget)
@@ -482,18 +463,24 @@ class manager_UI(QtWidgets.QWidget):
 
     def get_value_from_widget(self, widget):
         """ helper function to get the value from any type of widget """
+
+        # get value from widget
+        value = None  # todo will bug if value is none on purpose in the config
         if type(widget) is QtWidgets.QCheckBox:
-            return widget.checkState() == QtCore.Qt.Checked
+            value = widget.checkState() == QtCore.Qt.Checked
         if type(widget) in (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox):
-            return widget.value()
+            value = widget.value()
         if type(widget) is QtWidgets.QLineEdit:
             # if commas in text, convert to list
             text = widget.text()
-            if ',' in text:
-                return text.split(',')[1:]
-            # todo convert to right value
-            else:
-                return text
+            value = text
+
+        # convert value to right format / type
+        value_type = widget.property('attribute_type')
+        if value_type is list:
+            value = text.split(',')
+
+        return value
 
     # def load_project_config(self):
     #     """
