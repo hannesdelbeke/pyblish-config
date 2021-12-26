@@ -10,6 +10,20 @@ from . import config
 from .config import get_pipeline_config_from_plugins
 
 
+def wrap_widget_in_scroll_area(parent, widget):
+    """
+    wrap a widget in a scroll area
+    :param widget: widget to be wrapped
+    :return: scroll area containing the widget
+    """
+    scroll = QtWidgets.QScrollArea(parent)
+    scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+    scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+    scroll.setWidgetResizable(True)
+    scroll.setWidget(widget)
+
+    return scroll
+
 class plugin_widget(object):
     def __init__(self, pyblish_plugin, widget):
         # object.__init__(self)
@@ -70,7 +84,7 @@ class manager_UI(QtWidgets.QWidget):
         # self.config_button_layout.addWidget(self.save_config_button)
         #
         # create scroll area
-        widget_scroll = self.wrap_widget_in_scroll_area(plugin_button_container_widget)
+        widget_scroll = wrap_widget_in_scroll_area(self, plugin_button_container_widget)
 
         # create config buttons
         # self.register_plugins_button = QtWidgets.QPushButton('register plugins')
@@ -162,19 +176,7 @@ class manager_UI(QtWidgets.QWidget):
         # config screen
         self.show_config_first_plugin()
 
-    def wrap_widget_in_scroll_area(self, widget):
-        """
-        wrap a widget in a scroll area
-        :param widget: widget to be wrapped
-        :return: scroll area containing the widget
-        """
-        scroll = QtWidgets.QScrollArea(self)
-        scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        scroll.setWidgetResizable(True)
-        scroll.setWidget(widget)
 
-        return scroll
 
     def create_widget_plugin_buttons(self):
         for plugin_name, plugin_config in self.pipeline_config.items():
@@ -182,15 +184,19 @@ class manager_UI(QtWidgets.QWidget):
             w = QtWidgets.QCheckBox()
             w.setChecked(True)
             # signal_func = w.stateChanged
+            # w.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
             button = QtWidgets.QPushButton(plugin_name, self.widget_plugins_list)
             button.clicked.connect(self.show_clicked_plugin_config)
             self.widgets_plugin_buttons.append(button)
+            # button.setCenterAlignment()
+            # button.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
 
             layout = QtWidgets.QHBoxLayout(self)
-            layout.addWidget(w)
+            layout.addWidget(w, 0)
             layout.addWidget(button)
-
+            layout.addStretch()
+            # layout.setStretch(0, 0)
             self.vbox_plugins.addLayout(layout)
 
         self.vbox_plugins.addStretch()  # add stretch on bottom to push all buttons to top instead of center
@@ -221,13 +227,13 @@ class manager_UI(QtWidgets.QWidget):
         attributes_scroll_layout = QtWidgets.QVBoxLayout(self)
         widget_container2.setLayout(attributes_scroll_layout)
         # wrap the second container in a scroll area
-        widget_scroll = self.wrap_widget_in_scroll_area(widget_container2)
+        widget_scroll = wrap_widget_in_scroll_area(self, widget_container2)
 
         # todo show visual difference default values vs editted, see self.color_widget
         # todo add reset to default settings button
 
         # create title and doc widget
-        widget_plugin_config_title = QtWidgets.QLabel("PLUGIN NAME: " + plugin_name)
+        widget_plugin_config_title = QtWidgets.QLabel(plugin_name)  # "PLUGIN NAME: " +
         widget_plugin_config_title.setStyleSheet("font-size: 16px;")
         doc_string = str(plugin_config.get('__doc__', '')).strip()
         # while doc_string.startswith('\n'):
@@ -239,10 +245,10 @@ class manager_UI(QtWidgets.QWidget):
         # self.widget_plugin_doc.setLayout(layout)
         # layout.setMargin(0)
 
-        doc_scroll_widget = self.wrap_widget_in_scroll_area(self.widget_plugin_doc)
+        doc_scroll_widget = wrap_widget_in_scroll_area(self, self.widget_plugin_doc)
         doc_scroll_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         doc_scroll_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        doc_scroll_widget.setMaximumHeight(100)
+        doc_scroll_widget.setMaximumHeight(50)
         # doc_scroll_widget.SizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         # doc_scroll_widget.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
@@ -398,7 +404,12 @@ class manager_UI(QtWidgets.QWidget):
         #  also only do this for pyblish attributes
         if pyblish_plugin_doc == 0:
             pyblish_plugin_doc = pyblish.plugin.Plugin.__doc__
-        attribute_doc_raw = pyblish_plugin_doc.split('Attributes:')[1]
+
+        if 'Attributes:' in pyblish_plugin_doc:
+            attribute_doc_raw = pyblish_plugin_doc.split('Attributes:')[1]
+        else:
+            attribute_doc_raw = pyblish_plugin_doc
+
         # check if next line contains 1 or 2 tabs. 2 tabs continue doc, 1 line stop doc and start next attribute doc
         attribute_doc_raw_split = attribute_doc_raw.split('        ')
         # if it starts with 1 tab add it to the previous entry and delete current entry
@@ -621,7 +632,7 @@ class manager_UI(QtWidgets.QWidget):
 
 
 
-def make_config(discover=True, config=None):
+def make_config(discover=True, config=None, qapp=True):
     if discover:
 
         # get all plugins from pyblish
@@ -636,7 +647,8 @@ def make_config(discover=True, config=None):
         plugins = pyblish.api.discover()
         config = get_pipeline_config_from_plugins(plugins)
 
-    app = QtWidgets.QApplication(sys.argv)
+    if qapp:
+        app = QtWidgets.QApplication(sys.argv)
 
     m = manager_UI()
     m.load_config(config)
@@ -644,7 +656,49 @@ def make_config(discover=True, config=None):
     # m.display_config(config)
 
     m.show()
-    app.exec_()
+
+    if qapp:
+        app.exec_()
+
+
+    if False:
+        # app = QtWidgets.QApplication(sys.argv)
+
+        m = QtWidgets.QWidget()
+        # m.load_config(config)
+        # m.setWindowTitle('pyblish pipeline manager')
+        # m.display_config(config)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout_buttons = QtWidgets.QHBoxLayout()
+        layout_buttons.addWidget(QtWidgets.QLabel('test'))
+        layout_buttons.addWidget(QtWidgets.QLabel('test'))
+
+        path_widget = QtWidgets.QWidget()
+        path_layout = QtWidgets.QVBoxLayout()
+        path_widget.setLayout(path_layout)
+        path_scroll_widget = wrap_widget_in_scroll_area(m, path_widget)
+
+        layout.addLayout(layout_buttons)
+        layout.addWidget(path_scroll_widget)
+        m.setLayout(layout)
+
+        pyblish.api.register_plugin_path('c:/test')
+        for x in pyblish.api.registered_paths():
+            layout_buttons = QtWidgets.QHBoxLayout()
+            remove_path_button_widget = QtWidgets.QPushButton('-')
+            remove_path_button_widget.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+            layout_buttons.addWidget(remove_path_button_widget)
+            layout_buttons.addWidget(QtWidgets.QLabel(x))
+            path_layout.addLayout(layout_buttons)
+
+
+
+        m.show()
+        if qapp:
+            app.exec_()
+
+    return m
 
 # ideally all this make config stuff happens using default settings.
 # user just runs a single or 2 commands and it all runs
@@ -678,3 +732,8 @@ def make_config(discover=True, config=None):
 
 
 
+# maya snippet
+# import pyblish_config.config_creator_GUI as gui
+# reload(gui)
+#
+# test = gui.make_config(qapp=False)
