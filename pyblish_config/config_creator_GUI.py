@@ -35,7 +35,8 @@ class manager_UI(QtWidgets.QWidget):
         # create plugins list widget and layout
         self.widgets_plugin_buttons = []
         self.widget_plugins_list = self.create_left()   # the scroll list that contains the plugin buttons
-
+        self.widget_plugins_list.setMinimumWidth(200)
+        self.widget_plugins_list.setMaximumWidth(200)
         # create plugin settings widget
         # self.widget_plugin_config_container_main = self.create_right()  # sets up more self. variables inside method
 
@@ -60,16 +61,16 @@ class manager_UI(QtWidgets.QWidget):
         widget = QtWidgets.QWidget()
         widget.setLayout(self.vbox_config_layout)
 
-        w = QtWidgets.QWidget(self)
+        plugin_button_container_widget = QtWidgets.QWidget(self)
         self.vbox_plugins = QtWidgets.QVBoxLayout(self)
-        w.setLayout(self.vbox_plugins)
+        plugin_button_container_widget.setLayout(self.vbox_plugins)
 
         # self.config_button_layout = QtWidgets.QHBoxLayout()
         # self.config_button_layout.addWidget(self.load_config_button)
         # self.config_button_layout.addWidget(self.save_config_button)
         #
         # create scroll area
-        widget_scroll = self.wrap_widget_in_scroll_area(w)
+        widget_scroll = self.wrap_widget_in_scroll_area(plugin_button_container_widget)
 
         # create config buttons
         # self.register_plugins_button = QtWidgets.QPushButton('register plugins')
@@ -118,7 +119,7 @@ class manager_UI(QtWidgets.QWidget):
             attribute_name = widget.property('attribute_name')
             attribute_container_widget = widget.property('attribute_container_widget')
 
-            if attribute_name in default_plugin_attributes:
+            if attribute_name in default_plugin_attributes or attribute_name == '__doc__':
                 attribute_container_widget.setVisible(show_pyblish_attr)
 
             # widget.setVisible(not widget.isVisible())
@@ -229,14 +230,21 @@ class manager_UI(QtWidgets.QWidget):
         widget_plugin_config_title = QtWidgets.QLabel("PLUGIN NAME: " + plugin_name)
         widget_plugin_config_title.setStyleSheet("font-size: 16px;")
         doc_string = str(plugin_config.get('__doc__', '')).strip()
+        # while doc_string.startswith('\n'):
+        #     doc_string = doc_string[1:]
+        if doc_string == 'None':
+            doc_string = ''
         self.widget_plugin_doc = QtWidgets.QLabel(doc_string)
         # layout = QtWidgets.QVBoxLayout(self)
         # self.widget_plugin_doc.setLayout(layout)
         # layout.setMargin(0)
 
         doc_scroll_widget = self.wrap_widget_in_scroll_area(self.widget_plugin_doc)
-        doc_scroll_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        doc_scroll_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        doc_scroll_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         doc_scroll_widget.setMaximumHeight(100)
+        # doc_scroll_widget.SizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        # doc_scroll_widget.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
         # create checkbox hide pyblish attributes
         self.hide_pyblish_attributes_widget = QtWidgets.QCheckBox("Hide Pyblish attributes")
