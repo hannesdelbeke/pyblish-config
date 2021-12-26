@@ -18,6 +18,9 @@ class plugin_widget(object):
 
 
 
+default_plugin_attributes = ['actions', 'active', 'families', 'order', 'plugin', 'hosts', 'label', 'match', 'optional',
+                      'targets', 'version', 'requires', 'log', 'id', 'repair']
+# todo read these from plugin class directly
 
 
 class manager_UI(QtWidgets.QWidget):
@@ -224,6 +227,14 @@ class manager_UI(QtWidgets.QWidget):
 
             # WIDGET 1: create a widget containing the value
             attribute_widget = self.create_widget_from_attribute(attribute_name, attribute_value)
+
+            self.add_tooltips(attribute_widget, attribute_name)
+            if attribute_name not in default_plugin_attributes:
+
+                self.add_tooltips(attribute_widget, attribute_name, plugin_config['__doc__'])
+
+
+
             if not attribute_widget:
                 continue  # skip unsupported types
             attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
@@ -305,30 +316,59 @@ class manager_UI(QtWidgets.QWidget):
                     # print(key, original_config[key], value)
                     break
 
-            # attribute_name = attribute_widget.property('attribute_name')
-            # attribute_value = self.get_value_from_widget(attribute_widget)
-
-            # todo this doesnt aply when swapping plugin config screens
-            # todo color the plugin button too (parent)
-            # color widget when changed
-            # original_value = original_config[attribute_name]
-            # value_changed = original_value != attribute_value
-
             self._color_widget(plugin_widget, value_changed)
 
-    def create_widget_from_attribute(self, name, value):
+    def create_widget_from_attribute(self, attr_name, attr_value):
         """
         Create a widget to edit the attribute.
         Add the attribute name to the widget as a property: attribute_name
         """
         # todo handle exceptions
 
-        if name.lower() == 'actions':
-            return QtWidgets.QLabel(str(value))  # return default widget
+        if attr_name.lower() == 'actions':
+            return QtWidgets.QLabel(str(attr_value))  # return default widget
 
-        widget = self.create_widget_from_attr_type(value)
-        # widget.setProperty('attribute_name', name)
+        widget = self.create_widget_from_attr_type(attr_value)
+
+
+
         return widget
+
+    def add_tooltips(self, w, name, pyblish_plugin_doc=0):
+        """
+        Add tooltips to widgets
+        :param w:
+        :param name:
+        :param pyblish_plugin_doc: if not provided, will try to get base pyblish docstring from pyblish.plugin.Plugin.__doc__
+        :return:
+        """
+
+        # todo we do a lot of stuff here, save the calculations so we only do this once and not for every attr.
+        #  also only do this for pyblish attributes
+        if pyblish_plugin_doc == 0:
+            pyblish_plugin_doc = pyblish.plugin.Plugin.__doc__
+        attribute_doc_raw = pyblish_plugin_doc.split('Attributes:')[1]
+        # check if next line contains 1 or 2 tabs. 2 tabs continue doc, 1 line stop doc and start next attribute doc
+        attribute_doc_raw_split = attribute_doc_raw.split('        ')
+        # if it starts with 1 tab add it to the previous entry and delete current entry
+        index = -1
+        for x in attribute_doc_raw_split:
+            index += 1
+            if x.startswith('    '):
+                attribute_doc_raw_split[index - 1] += x[4:]  # remove 1 tab at start and add to previous entry
+                attribute_doc_raw_split[index] = ''
+        # sort doc entries by attribute name in a dict
+        attribute_doc = {}
+        for x in attribute_doc_raw_split:
+            if x and ':' in x:
+                # before the : is the attribute name, after is the docstring, split 1 since doc could contain :
+                attribute_name = x.split(':', 1)[0].strip()
+                # handle space in attr name: 'attr_name (str) : docstring'
+                attribute_name = attribute_name.split(' ',1)[0]
+                attribute_doc[attribute_name] = x.split(':', 1)[1].strip()
+        print(attribute_doc)
+        if name in attribute_doc.keys():
+            w.setToolTip(attribute_doc[name])
 
     def create_widget_from_attr_type(self, value):
         """
@@ -398,6 +438,7 @@ class manager_UI(QtWidgets.QWidget):
 
         if signal_func:
             signal_func.connect(self.set_plugin_config_from_widget)
+
         return w  # signal_func
 
     # todo create special widget for build in pyblish attributes.

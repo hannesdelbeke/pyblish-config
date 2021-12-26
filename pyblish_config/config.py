@@ -6,8 +6,6 @@ import json
 # let's name it register because the filter only applies after discover has run.
 # we need to support discover since the pyblish GUI uses it
 skip_attr = []#'repair', 'id', 'log', 'process', 'version', 'requires']
-default_attributes = ['actions', 'active', 'families', 'order', 'plugin', 'hosts', 'label', 'match', 'optional',
-                      'targets', 'version', 'requires', 'log', 'id', 'repair']
 
 
 # plugin config: the config/settings of a single plugin
@@ -126,7 +124,7 @@ def get_plugin_config(plugin):
     # for every plugin, store all settings in the plugin config
     plugin_config = {}
     for attr in dir(plugin):
-        if not attr.startswith('_'):  # and attr not in skip_attr and attr not in default_attributes:
+        if not attr.startswith('_') and attr not in ('id', 'log'):  # skip id & log, you should never change these
             value = getattr(plugin, attr)
             plugin_config[attr] = value
     plugin_config['__doc__'] = plugin.__doc__
