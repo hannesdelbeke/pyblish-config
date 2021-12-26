@@ -141,7 +141,7 @@ class manager_UI(QtWidgets.QWidget):
         self.create_widget_plugin_buttons()
 
         # config screen
-        # self.show_config_first_plugin()
+        self.show_config_first_plugin()
 
     def wrap_widget_in_scroll_area(self, widget):
         """
@@ -208,7 +208,7 @@ class manager_UI(QtWidgets.QWidget):
         # todo add reset to default settings button
 
         # create title and doc widget
-        self.widget_plugin_config_title = QtWidgets.QLabel("PLUGIN NAME")
+        self.widget_plugin_config_title = QtWidgets.QLabel("PLUGIN NAME: " + plugin_name)
         self.widget_plugin_config_title.setStyleSheet("font-size: 16px;")
         doc_string = str(plugin_config.get('__doc__', ''))
         self.widget_plugin_doc = QtWidgets.QLabel('Documentation:' + doc_string)
@@ -268,6 +268,10 @@ class manager_UI(QtWidgets.QWidget):
 
     def _color_attribute_widget(self, attribute_widget):
         # color the widget and the matching plugin
+
+        # dont color labels, you cant change their values
+        if type(attribute_widget) == QtWidgets.QLabel:
+            return False
 
         original_config = self.original_pipeline_config[self.current_plugin_name]
 

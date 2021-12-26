@@ -2,6 +2,12 @@ import pyblish.api
 import pathlib2 as pathlib
 
 class CollectFilePaths(pyblish.api.ContextPlugin):
+    """
+    Collect all file paths in a folder.
+    Set the folder path in mesh_folder_path.
+    If comine_paths is True, all paths will be stored in one Pyblish instance,
+    otherwise you get a separate instance for each path found.
+    """
     label = "Collect FileNames as Path"
     order = pyblish.api.CollectorOrder
     # hosts = ["maya"]
