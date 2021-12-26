@@ -108,6 +108,21 @@ class manager_UI(QtWidgets.QWidget):
             plugin_name = self.widgets_plugin_buttons[0].text()
             self.show_plugin_config(plugin_name)
 
+    def refresh_attributes(self):
+        # toggle hide default pyblish attributes
+
+        show_pyblish_attr = self.hide_pyblish_attributes_widget.checkState() != QtCore.Qt.Checked
+
+
+        for widget in self.current_plugin_attributes_widgets:
+            attribute_name = widget.property('attribute_name')
+            attribute_container_widget = widget.property('attribute_container_widget')
+
+            if attribute_name in default_plugin_attributes:
+                attribute_container_widget.setVisible(show_pyblish_attr)
+
+            # widget.setVisible(not widget.isVisible())
+
     def show_clicked_plugin_config(self, *args):
         sender = self.sender()
         plugin_name = sender.text()
@@ -216,27 +231,35 @@ class manager_UI(QtWidgets.QWidget):
         doc_string = str(plugin_config.get('__doc__', ''))
         self.widget_plugin_doc = QtWidgets.QLabel('Documentation:' + doc_string)
 
+        # create checkbox hide pyblish attributes
+        self.hide_pyblish_attributes_widget = QtWidgets.QCheckBox("Hide Pyblish attributes")
+        self.hide_pyblish_attributes_widget.stateChanged.connect(self.refresh_attributes)
+
         # add title, doc, and scroll widgets to main container
         plugin_config_main_layout.addWidget(self.widget_plugin_config_title)
         plugin_config_main_layout.addWidget(self.widget_plugin_doc)
         plugin_config_main_layout.addWidget(widget_scroll)
+        plugin_config_main_layout.addWidget(self.hide_pyblish_attributes_widget)
 
         # create attribute widgets
         self.current_plugin_attributes_widgets = []  # list of attribute widgets
         for attribute_name, attribute_value in plugin_config.items():  # for every attribute
 
+            # hide_pyblish_attr = self.hide_pyblish_attributes_widget.checkState() == QtCore.Qt.Checked
+            # if hide_pyblish_attr and attribute_name in default_plugin_attributes:
+            #     continue
+
+
             # WIDGET 1: create a widget containing the value
             attribute_widget = self.create_widget_from_attribute(attribute_name, attribute_value)
 
-            self.add_tooltips(attribute_widget, attribute_name)
-            if attribute_name not in default_plugin_attributes:
-
-                self.add_tooltips(attribute_widget, attribute_name, plugin_config['__doc__'])
-
-
-
             if not attribute_widget:
                 continue  # skip unsupported types
+
+            self.add_tooltips(attribute_widget, attribute_name)
+            if attribute_name not in default_plugin_attributes:
+                self.add_tooltips(attribute_widget, attribute_name, plugin_config['__doc__'])
+
             attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
             attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
             # TODO data passed by name, add support for plugins with same
@@ -247,10 +270,18 @@ class manager_UI(QtWidgets.QWidget):
 
             # layout widgets next each other
             layout_attr = QtWidgets.QHBoxLayout(plugin_config_main_widget)
+
+            attr_widget_container = QtWidgets.QWidget()
+            attr_widget_container.setLayout(layout_attr)
+            attribute_widget.setProperty('attribute_container_widget', attr_widget_container)
+
             layout_attr.addWidget(attribute_name_label)
             layout_attr.addWidget(attribute_widget)
-            attributes_scroll_layout.addLayout(layout_attr)
+            layout_attr.setMargin(0)
             # Todo link widget to label and plugin parent widget (button)
+
+
+            attributes_scroll_layout.addWidget(attr_widget_container)
 
             # todo WIP buttons to change type for attribute, incase we cant find type from value. ex. empty value.
             # change_type_button = QtWidgets.QPushButton('change type')
@@ -259,6 +290,8 @@ class manager_UI(QtWidgets.QWidget):
             # layout_attr.addWidget(type_button)
 
         attributes_scroll_layout.addStretch()
+
+        self.hide_pyblish_attributes_widget.setChecked(True) # do this at the end, it triggers a refresh
 
         return plugin_config_main_widget
 
@@ -343,6 +376,9 @@ class manager_UI(QtWidgets.QWidget):
         :return:
         """
 
+        if not pyblish_plugin_doc:
+            return
+
         # todo we do a lot of stuff here, save the calculations so we only do this once and not for every attr.
         #  also only do this for pyblish attributes
         if pyblish_plugin_doc == 0:
@@ -366,7 +402,6 @@ class manager_UI(QtWidgets.QWidget):
                 # handle space in attr name: 'attr_name (str) : docstring'
                 attribute_name = attribute_name.split(' ',1)[0]
                 attribute_doc[attribute_name] = x.split(':', 1)[1].strip()
-        print(attribute_doc)
         if name in attribute_doc.keys():
             w.setToolTip(attribute_doc[name])
 
