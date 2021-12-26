@@ -2,6 +2,8 @@ import sys
 
 import pyblish.api
 from Qt import QtWidgets, QtCore
+from Qt.QtWidgets import QFileDialog
+
 import copy
 
 from . import config
@@ -32,12 +34,15 @@ class manager_UI(QtWidgets.QWidget):
         self.widget_plugins_list = self.create_left()   # the scroll list that contains the plugin buttons
 
         # create plugin settings widget
-        self.widget_plugin_config_container_main = self.create_right()  # sets up more self. variables inside method
+        # self.widget_plugin_config_container_main = self.create_right()  # sets up more self. variables inside method
+
+        # # create placeholder
+        self.widget_plugin_config = QtWidgets.QWidget(self)
 
         # Layout left and right widgets
         self.hbox_main_layout = QtWidgets.QHBoxLayout(self)
         self.hbox_main_layout.addWidget(self.widget_plugins_list)  # self.config_main_widget
-        self.hbox_main_layout.addWidget(self.widget_plugin_config_container_main)  # self.widget_plugin_config
+        # self.hbox_main_layout.addWidget(self.widget_plugin_config_container_main)  # self.widget_plugin_config
 
         # self.vbox_main_layout.addWidget(self.config_buttons_widget)
 
@@ -64,15 +69,21 @@ class manager_UI(QtWidgets.QWidget):
         widget_scroll = self.wrap_widget_in_scroll_area(w)
 
         # create config buttons
-        self.load_config_button = QtWidgets.QPushButton('load_config')
-        self.save_config_button = QtWidgets.QPushButton('save_config')
-        # self.load_config_button.clicked.connect(self.show_plugin_config)
+        # self.register_plugins_button = QtWidgets.QPushButton('register plugins')
+        self.load_config_button = QtWidgets.QPushButton('load config')
+        self.save_config_button = QtWidgets.QPushButton('save config')
+        self.load_config_button.clicked.connect(self.load_project_config)
         self.save_config_button.clicked.connect(self.save_project_config)
 
         self.config_button_layout = QtWidgets.QHBoxLayout()
+        # self.config_button_layout.addWidget(self.register_plugins_button)
         self.config_button_layout.addWidget(self.load_config_button)
         self.config_button_layout.addWidget(self.save_config_button)
 
+        # dropdown = QtWidgets.QComboBox()
+        # dropdown.addItems(['register plugins', 'configure pipeline'])
+
+        # self.vbox_config_layout.addWidget(dropdown)
         self.vbox_config_layout.addWidget(widget_scroll)
         self.vbox_config_layout.addLayout(self.config_button_layout)
 
@@ -86,34 +97,6 @@ class manager_UI(QtWidgets.QWidget):
         file_types = "Json (*.json)"
         root_folder = ""
         return QtWidgets.QFileDialog.getOpenFileName(self, title, root_folder, file_types)[0]
-
-    def create_right(self):
-        """
-        first container is the whole attribute settings window.
-
-        second container is the scrollable widget we add all attribute widgets too
-        self.layout_plugin_config_container, this is the widget that contains the attribute widgets
-        :return:
-        """
-
-        # create placeholder
-        self.widget_plugin_config = QtWidgets.QWidget(self)
-
-        # create main container
-        widget_container = QtWidgets.QWidget()
-        layout_plugin_config_main_container = QtWidgets.QVBoxLayout(self)
-        widget_container.setLayout(layout_plugin_config_main_container)
-
-        # create second container: self.layout_plugin_config_container
-        widget_container2 = QtWidgets.QWidget()
-        self.layout_plugin_config_container = QtWidgets.QVBoxLayout(self)
-        widget_container2.setLayout(self.layout_plugin_config_container)
-
-        # wrap the second container in a scroll area
-        widget_scroll = self.wrap_widget_in_scroll_area(widget_container2)
-        layout_plugin_config_main_container.addWidget(widget_scroll)
-
-        return widget_container  # empty placeholder which'll contain the plugin config
 
 
     def show_config_first_plugin(self):
@@ -138,20 +121,16 @@ class manager_UI(QtWidgets.QWidget):
         plugin_config = self.pipeline_config[plugin_name]
         w = self.create_widget_plugin_config(plugin_config, plugin_name)
 
-
         # delete old widget
         self.hbox_main_layout.removeWidget(self.widget_plugin_config)
         self.widget_plugin_config.deleteLater()
         self.widget_plugin_config = None
 
-
         self.widget_plugin_config = w
-        self.layout_plugin_config_container.addWidget(self.widget_plugin_config)
-
+        self.hbox_main_layout.addWidget(self.widget_plugin_config)
         w.repaint()
 
         self.color_attribute_widgets()
-
 
     def load_config(self, pipeline_config):
         self.original_pipeline_config = copy.deepcopy(pipeline_config)
@@ -162,7 +141,7 @@ class manager_UI(QtWidgets.QWidget):
         self.create_widget_plugin_buttons()
 
         # config screen
-        self.show_config_first_plugin()
+        # self.show_config_first_plugin()
 
     def wrap_widget_in_scroll_area(self, widget):
         """
@@ -211,20 +190,33 @@ class manager_UI(QtWidgets.QWidget):
         :param plugin_name:
         :return: the plugin config widget
         """
+        self.current_plugin_name = plugin_name
+
+        # create main container
+        plugin_config_main_widget = QtWidgets.QWidget()
+        plugin_config_main_layout = QtWidgets.QVBoxLayout(self)
+        plugin_config_main_widget.setLayout(plugin_config_main_layout)
+
+        # create second container: attributes_scroll_layout
+        widget_container2 = QtWidgets.QWidget()
+        attributes_scroll_layout = QtWidgets.QVBoxLayout(self)
+        widget_container2.setLayout(attributes_scroll_layout)
+        # wrap the second container in a scroll area
+        widget_scroll = self.wrap_widget_in_scroll_area(widget_container2)
 
         # todo show visual difference default values vs editted, see self.color_widget
         # todo add reset to default settings button
 
-        plugin_config_widget = QtWidgets.QWidget()
-        vbox = QtWidgets.QVBoxLayout(plugin_config_widget)
-        plugin_config_widget.setLayout(vbox)
+        # create title and doc widget
+        self.widget_plugin_config_title = QtWidgets.QLabel("PLUGIN NAME")
+        self.widget_plugin_config_title.setStyleSheet("font-size: 16px;")
+        doc_string = str(plugin_config.get('__doc__', ''))
+        self.widget_plugin_doc = QtWidgets.QLabel('Documentation:' + doc_string)
 
-        # create title widget
-        self.current_plugin_name = plugin_name
-        w = QtWidgets.QLabel(plugin_name)  # get name plugin
-        vbox.addWidget(w)
-
-        # todo move scroll from show_plugin_config to here
+        # add title, doc, and scroll widgets to main container
+        plugin_config_main_layout.addWidget(self.widget_plugin_config_title)
+        plugin_config_main_layout.addWidget(self.widget_plugin_doc)
+        plugin_config_main_layout.addWidget(widget_scroll)
 
         # create attribute widgets
         self.current_plugin_attributes_widgets = []  # list of attribute widgets
@@ -243,10 +235,10 @@ class manager_UI(QtWidgets.QWidget):
             attribute_name_label = QtWidgets.QLabel(attribute_name)
 
             # layout widgets next each other
-            layout_attr = QtWidgets.QHBoxLayout(plugin_config_widget)
+            layout_attr = QtWidgets.QHBoxLayout(plugin_config_main_widget)
             layout_attr.addWidget(attribute_name_label)
             layout_attr.addWidget(attribute_widget)
-            vbox.addLayout(layout_attr)
+            attributes_scroll_layout.addLayout(layout_attr)
             # Todo link widget to label and plugin parent widget (button)
 
             # todo WIP buttons to change type for attribute, incase we cant find type from value. ex. empty value.
@@ -255,17 +247,9 @@ class manager_UI(QtWidgets.QWidget):
             # layout_attr.addWidget(change_type_button)
             # layout_attr.addWidget(type_button)
 
-        vbox.addStretch()
+        attributes_scroll_layout.addStretch()
 
-        return plugin_config_widget
-
-    # def update_plugin_config_value(self):
-    #     sender = self.sender()
-    #     plugin_name = sender.parent
-
-
-
-
+        return plugin_config_main_widget
 
     def color_attribute_widgets(self):
         any_value_changed = False
@@ -275,16 +259,12 @@ class manager_UI(QtWidgets.QWidget):
 
         if any_value_changed:
             pass
-            # color the plugin too
-    # todo
-
 
     def _color_widget(self, widget, value_changed):
         if value_changed:
             widget.setStyleSheet("background-color: rgb(255, 200, 100);")
         else:
             widget.setStyleSheet("")
-
 
     def _color_attribute_widget(self, attribute_widget):
         # color the widget and the matching plugin
@@ -409,7 +389,8 @@ class manager_UI(QtWidgets.QWidget):
         else:
             w = QtWidgets.QLabel(str(value))  # return default widget
 
-        w.setProperty('attribute_type', type(value))
+        if w:
+            w.setProperty('attribute_type', type(value))
 
         if signal_func:
             signal_func.connect(self.set_plugin_config_from_widget)
@@ -511,23 +492,41 @@ class manager_UI(QtWidgets.QWidget):
         """
 
         # get path
-
         browsed_path = self._open_qfiledialog().replace("/", "\\")
         if browsed_path:
             self.json_path_output = browsed_path
-            print(browsed_path)
-        else:
-            print("cancelled browse")
 
         config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
         config.save_config(self.json_path_output, config_data)
+
+    def load_project_config(self):
+        # browse to config
+
+        title = "save config file"
+        file_types = "Json (*.json)"
+        root_folder = ""
+        browsed_path = QFileDialog.getOpenFileName(self, title, root_folder, file_types)[0].replace("/", "\\")
+        # browsed_path = self._open_qfiledialog().replace("/", "\\")
+        # if browsed_path:
+        #     self.json_path_output = browsed_path
+
+        # open config
+        self.pipeline_config = config.load_config(browsed_path)  # todo verify the loaded config is valid
+
+        # refresh colors
+        self.color_attribute_widgets()
+        self.color_plugin_widgets()
+
+        # todo handle case where the discover does not contain plugin but the config does, same with attributes
+        # ex discover returns plugin 1 and 2, but config also contains settings for plugin 3
+        # might not be returned because it has a compile error since a recent update
 
 
 # todo would be cool if pipeline didnt just filter but also saved locations to paths of plugins
 
 
 
-def make_config(discover=True):
+def make_config(discover=True, config=None):
     if discover:
 
         # get all plugins from pyblish
@@ -546,7 +545,7 @@ def make_config(discover=True):
 
     m = manager_UI()
     m.load_config(config)
-
+    m.setWindowTitle('pyblish pipeline manager')
     # m.display_config(config)
 
     m.show()

@@ -5,7 +5,9 @@ import json
 # does register_config imply we can have multiple filters?
 # let's name it register because the filter only applies after discover has run.
 # we need to support discover since the pyblish GUI uses it
-skip_attr = ['repair', 'id', 'log', 'process', 'version', 'requires']
+skip_attr = []#'repair', 'id', 'log', 'process', 'version', 'requires']
+default_attributes = ['actions', 'active', 'families', 'order', 'plugin', 'hosts', 'label', 'match', 'optional',
+                      'targets', 'version', 'requires', 'log', 'id', 'repair']
 
 
 # plugin config: the config/settings of a single plugin
@@ -33,7 +35,7 @@ def register_config_filter(config_path=None, config_dict=None):
     def config_filter_callback(plugins):
         # we expect either the config path or the config data
         if config_path:
-            f = open(config_path, )
+            f = open(config_path)
             config_dict = json.load(f)
         elif not config_dict:
             raise Exception
@@ -67,6 +69,11 @@ def save_config(path, config_data):
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=4)
 
+def load_config(config_path):
+    """load a config from a json. can be used on both pipeline and plugin configs"""
+    f = open(config_path)
+    config_dict = json.load(f)
+    return config_dict
 
 def diff_pipeline_configs(config_new, config_original):
     # get differences between config and plugin settings
@@ -119,7 +126,7 @@ def get_plugin_config(plugin):
     # for every plugin, store all settings in the plugin config
     plugin_config = {}
     for attr in dir(plugin):
-        if not attr.startswith('_') and attr not in skip_attr:
+        if not attr.startswith('_'):  # and attr not in skip_attr and attr not in default_attributes:
             value = getattr(plugin, attr)
             plugin_config[attr] = value
     plugin_config['__doc__'] = plugin.__doc__
