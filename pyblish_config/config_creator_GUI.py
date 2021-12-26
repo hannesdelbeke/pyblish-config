@@ -226,18 +226,25 @@ class manager_UI(QtWidgets.QWidget):
         # todo add reset to default settings button
 
         # create title and doc widget
-        self.widget_plugin_config_title = QtWidgets.QLabel("PLUGIN NAME: " + plugin_name)
-        self.widget_plugin_config_title.setStyleSheet("font-size: 16px;")
-        doc_string = str(plugin_config.get('__doc__', ''))
-        self.widget_plugin_doc = QtWidgets.QLabel('Documentation:' + doc_string)
+        widget_plugin_config_title = QtWidgets.QLabel("PLUGIN NAME: " + plugin_name)
+        widget_plugin_config_title.setStyleSheet("font-size: 16px;")
+        doc_string = str(plugin_config.get('__doc__', '')).strip()
+        self.widget_plugin_doc = QtWidgets.QLabel(doc_string)
+        # layout = QtWidgets.QVBoxLayout(self)
+        # self.widget_plugin_doc.setLayout(layout)
+        # layout.setMargin(0)
+
+        doc_scroll_widget = self.wrap_widget_in_scroll_area(self.widget_plugin_doc)
+        doc_scroll_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        doc_scroll_widget.setMaximumHeight(100)
 
         # create checkbox hide pyblish attributes
         self.hide_pyblish_attributes_widget = QtWidgets.QCheckBox("Hide Pyblish attributes")
         self.hide_pyblish_attributes_widget.stateChanged.connect(self.refresh_attributes)
 
         # add title, doc, and scroll widgets to main container
-        plugin_config_main_layout.addWidget(self.widget_plugin_config_title)
-        plugin_config_main_layout.addWidget(self.widget_plugin_doc)
+        plugin_config_main_layout.addWidget(widget_plugin_config_title)
+        plugin_config_main_layout.addWidget(doc_scroll_widget)
         plugin_config_main_layout.addWidget(widget_scroll)
         plugin_config_main_layout.addWidget(self.hide_pyblish_attributes_widget)
 
