@@ -5,7 +5,7 @@ import json
 # does register_config imply we can have multiple filters?
 # let's name it register because the filter only applies after discover has run.
 # we need to support discover since the pyblish GUI uses it
-skip_attr = []#'repair', 'id', 'log', 'process', 'version', 'requires']
+# skip_attr = []#'repair', 'id', 'log', 'process', 'version', 'requires']
 
 
 # plugin config: the config/settings of a single plugin
