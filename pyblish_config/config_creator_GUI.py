@@ -110,13 +110,24 @@ class manager_UI(QtWidgets.QWidget):
 
         return widget
 
+    def pipeline_config_refresh_active_checkboxes(self):
+        print("test")
+        for w in self.widgets_plugin_checkboxes:
+            plugin_name = w.property('plugin_name')
+            is_active = self.pipeline_config[plugin_name]['active']
+            w.setChecked(is_active)
+            print(plugin_name, is_active)
+
     def pipeline_config_plugin_buttons_create_widget(self):
+        self.widgets_plugin_checkboxes = []
         for plugin_name, _ in self.pipeline_config.items():
 
-            w = QtWidgets.QCheckBox()
-            w.setChecked(True)
-            w.stateChanged.connect(self.pipeline_config_toggle_plugin_active)
-            w.setProperty('plugin_name', plugin_name)
+
+            plugin_active_checkbox_widget = QtWidgets.QCheckBox()
+            plugin_active_checkbox_widget.stateChanged.connect(self.pipeline_config_toggle_plugin_active)
+            plugin_active_checkbox_widget.setProperty('plugin_name', plugin_name)
+
+            self.widgets_plugin_checkboxes.append(plugin_active_checkbox_widget)
             # signal_func = w.stateChanged
             # w.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
@@ -127,12 +138,12 @@ class manager_UI(QtWidgets.QWidget):
             # button.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
 
             layout = QtWidgets.QHBoxLayout(self)
-            layout.addWidget(w, 0)
+            layout.addWidget(plugin_active_checkbox_widget, 0)
             layout.addWidget(button)
             layout.addStretch()
             # layout.setStretch(0, 0)
             self.vbox_plugins.addLayout(layout)
-
+        self.pipeline_config_refresh_active_checkboxes()
         self.vbox_plugins.addStretch()  # add stretch on bottom to push all buttons to top instead of center
 
     def pipeline_config_toggle_plugin_active(self):
@@ -244,6 +255,8 @@ class manager_UI(QtWidgets.QWidget):
 
             # widget.setVisible(not widget.isVisible())
 
+        self.pipeline_config_refresh_active_checkboxes()
+
     def plugin_config_show_clicked(self, *args):
         sender = self.sender()
         plugin_name = sender.text()
@@ -351,8 +364,6 @@ class manager_UI(QtWidgets.QWidget):
             if attribute_name not in default_plugin_attributes:
                 self.plugin_config_add_tooltips(attribute_widget, attribute_name, plugin_config['__doc__'])
 
-            attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
-            attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
             # TODO data passed by name, add support for plugins with same
             self.current_plugin_attributes_widgets.append(attribute_widget)
 
@@ -364,6 +375,9 @@ class manager_UI(QtWidgets.QWidget):
 
             attr_widget_container = QtWidgets.QWidget()
             attr_widget_container.setLayout(layout_attr)
+
+            attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
+            attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
             attribute_widget.setProperty('attribute_container_widget', attr_widget_container)
 
             layout_attr.addWidget(attribute_name_label)
@@ -389,12 +403,18 @@ class manager_UI(QtWidgets.QWidget):
 
     def plugin_config_color_attribute_widgets(self):
         any_value_changed = False
+        any_pyblish_default_value_changed = False  # check if any of the pyblish defult values changed, they might be hidden
         for w in self.current_plugin_attributes_widgets:
+            attribute_name = w.property('attribute_name')
             value_changed = self.plugin_config_color_attribute_widget(w)
             any_value_changed = any_value_changed or value_changed
 
-        if any_value_changed:
-            pass
+            if attribute_name in default_plugin_attributes and value_changed:
+                any_pyblish_default_value_changed = True
+
+        # if any_value_changed:
+        #     pass
+        self._color_widget(self.hide_pyblish_attributes_widget, any_pyblish_default_value_changed)
 
     def plugin_config_color_attribute_widget(self, attribute_widget):
         # color the widget and the matching plugin
@@ -599,6 +619,7 @@ class manager_UI(QtWidgets.QWidget):
 
         self.plugin_config_color_attribute_widgets()  # update colors when changing the widget
         self.pipeline_config_color_plugin_widgets()
+        self.pipeline_config_refresh_active_checkboxes()
 
     # helper functions
 
