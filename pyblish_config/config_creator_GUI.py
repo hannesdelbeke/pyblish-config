@@ -45,6 +45,7 @@ class manager_UI(QtWidgets.QWidget):
         self.pipeline_config = {}
         self.json_path_output = r"C:\Projects\pyblish-plugin-manager\output_config.json"  # todo remove hardcoded path
         self.json_path_input = ""
+        self.hide_pyblish_attributes = True
 
         # create plugins list widget and layout
         self.widgets_plugin_buttons = []
@@ -114,6 +115,8 @@ class manager_UI(QtWidgets.QWidget):
 
             w = QtWidgets.QCheckBox()
             w.setChecked(True)
+            w.stateChanged.connect(self.pipeline_config_toggle_plugin_active)
+            w.setProperty('plugin_name', plugin_name)
             # signal_func = w.stateChanged
             # w.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
@@ -131,6 +134,19 @@ class manager_UI(QtWidgets.QWidget):
             self.vbox_plugins.addLayout(layout)
 
         self.vbox_plugins.addStretch()  # add stretch on bottom to push all buttons to top instead of center
+
+    def pipeline_config_toggle_plugin_active(self):
+        sender = self.sender()
+        plugin_name = sender.property('plugin_name')
+        self.pipeline_config[plugin_name]['active'] = sender.checkState() == QtCore.Qt.Checked
+
+        # trigger redraw of plugin config
+        self.plugin_config_show(plugin_name)
+
+        # refresh colors
+        self.plugin_config_color_attribute_widgets()
+        self.pipeline_config_color_plugin_widgets()
+
 
     def pipeline_config_delete_plugin_buttons(self):
         for button in self.widgets_plugin_buttons:
@@ -171,13 +187,16 @@ class manager_UI(QtWidgets.QWidget):
         # ex discover returns plugin 1 and 2, but config also contains settings for plugin 3
         # might not be returned because it has a compile error since a recent update
 
+    def pipeline_config_refresh(self):
+        self.pipeline_config_delete_plugin_buttons()
+        self.pipeline_config_plugin_buttons_create_widget()
+
     def pipeline_config_load(self, pipeline_config):
         self.original_pipeline_config = copy.deepcopy(pipeline_config)
         self.pipeline_config = copy.deepcopy(pipeline_config)  # pipeline_config
 
         # plugin screen
-        self.pipeline_config_delete_plugin_buttons()
-        self.pipeline_config_plugin_buttons_create_widget()
+        self.pipeline_config_refresh()
 
         # config screen
         self.plugin_config_show_first()
@@ -209,10 +228,12 @@ class manager_UI(QtWidgets.QWidget):
             self.plugin_config_show(plugin_name)
 
     def plugin_config_refresh_attributes(self):
-        # toggle hide default pyblish attributes
+        """
+        toggle hide default pyblish attributes
+        """
 
-        show_pyblish_attr = self.hide_pyblish_attributes_widget.checkState() != QtCore.Qt.Checked
-
+        self.hide_pyblish_attributes = self.hide_pyblish_attributes_widget.checkState() == QtCore.Qt.Checked
+        show_pyblish_attr = not self.hide_pyblish_attributes
 
         for widget in self.current_plugin_attributes_widgets:
             attribute_name = widget.property('attribute_name')
@@ -361,7 +382,8 @@ class manager_UI(QtWidgets.QWidget):
 
         attributes_scroll_layout.addStretch()
 
-        self.hide_pyblish_attributes_widget.setChecked(True) # do this at the end, it triggers a refresh
+        self.hide_pyblish_attributes_widget.setChecked(self.hide_pyblish_attributes)
+        # self.hide_pyblish_attributes_widget.setChecked(True) # do this at the end, it triggers a refresh
 
         return plugin_config_main_widget
 
@@ -633,10 +655,7 @@ class manager_UI(QtWidgets.QWidget):
     #             if self.original_pipeline_config[k][k2] != v2:
     #                 config_data[k][k2] = v2
 
-
 # todo would be cool if pipeline didnt just filter but also saved locations to paths of plugins
-
-
 
 def make_config(discover=True, config=None, qapp=True):
     if discover:
