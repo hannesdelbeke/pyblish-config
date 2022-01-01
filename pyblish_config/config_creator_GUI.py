@@ -186,7 +186,11 @@ class manager_UI(QtWidgets.QWidget):
         #     self.json_path_output = browsed_path
 
         # open config
+
+        ## Raw loading of config
         # self.pipeline_config = config.load_config(browsed_path)  # todo verify the loaded config is valid
+        
+        ## additive loading of config
         loaded_config = config.load_config(browsed_path)
         for plugin_name, plugin_config in loaded_config.items():
             for attr_name, value in plugin_config.items():
