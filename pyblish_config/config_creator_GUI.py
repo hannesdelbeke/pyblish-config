@@ -111,17 +111,15 @@ class manager_UI(QtWidgets.QWidget):
         return widget
 
     def pipeline_config_refresh_active_checkboxes(self):
-        print("test")
+        # todo atm this method runs several times, optimise and only run once for each plugin
         for w in self.widgets_plugin_checkboxes:
             plugin_name = w.property('plugin_name')
             is_active = self.pipeline_config[plugin_name]['active']
             w.setChecked(is_active)
-            print(plugin_name, is_active)
 
     def pipeline_config_plugin_buttons_create_widget(self):
         self.widgets_plugin_checkboxes = []
         for plugin_name, _ in self.pipeline_config.items():
-
 
             plugin_active_checkbox_widget = QtWidgets.QCheckBox()
             plugin_active_checkbox_widget.stateChanged.connect(self.pipeline_config_toggle_plugin_active)
@@ -188,7 +186,11 @@ class manager_UI(QtWidgets.QWidget):
         #     self.json_path_output = browsed_path
 
         # open config
-        self.pipeline_config = config.load_config(browsed_path)  # todo verify the loaded config is valid
+        # self.pipeline_config = config.load_config(browsed_path)  # todo verify the loaded config is valid
+        loaded_config = config.load_config(browsed_path)
+        for plugin_name, plugin_config in loaded_config.items():
+            for attr_name, value in plugin_config.items():
+                self.pipeline_config[plugin_name][attr_name] = value
 
         # refresh colors
         self.plugin_config_color_attribute_widgets()

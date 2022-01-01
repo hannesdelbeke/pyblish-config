@@ -100,7 +100,6 @@ def diff_pipeline_configs(config_new, config_original):
 
     return config_data
 
-
 def get_pipeline_config_from_plugins(plugins):
     """
     from a list of plugins, get all plugin configs.
@@ -113,7 +112,6 @@ def get_pipeline_config_from_plugins(plugins):
         pipeline_config[plugin.__name__] = get_plugin_config(plugin)
 
     return pipeline_config
-
 
 def get_plugin_config(plugin):
     """
