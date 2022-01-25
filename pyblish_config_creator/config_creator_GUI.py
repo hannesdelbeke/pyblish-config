@@ -6,8 +6,8 @@ from Qt.QtWidgets import QFileDialog
 
 import copy
 
-from . import config
-from .config import get_pipeline_config_from_plugins
+from pyblish_config import config
+from pyblish_config.config import get_pipeline_config_from_plugins
 
 
 def wrap_widget_in_scroll_area(parent, widget):
@@ -172,7 +172,7 @@ class manager_UI(QtWidgets.QWidget):
             self.json_path_output = browsed_path
 
         config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
-        config.save_config(self.json_path_output, config_data)
+        config.save_config_as_json(self.json_path_output, config_data)
 
     def pipeline_config_browse_and_load(self):
         # browse to config
@@ -191,7 +191,7 @@ class manager_UI(QtWidgets.QWidget):
         # self.pipeline_config = config.load_config(browsed_path)  # todo verify the loaded config is valid
 
         ## additive loading of config
-        loaded_config = config.load_config(browsed_path)
+        loaded_config = config.load_config_from_json(browsed_path)
         for plugin_name, plugin_config in loaded_config.items():
             for attr_name, value in plugin_config.items():
                 self.pipeline_config[plugin_name][attr_name] = value

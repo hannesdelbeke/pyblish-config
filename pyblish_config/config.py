@@ -62,12 +62,12 @@ def register_config_filter(config_path=None, config_dict=None):
 #     return plugins
 
 
-def save_config(path, config_data):
+def save_config_as_json(path, config_data):
     """save a config to a json. can be used on both pipeline and plugin configs"""
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=4)
 
-def load_config(config_path):
+def load_config_from_json(config_path):
     """load a config from a json. can be used on both pipeline and plugin configs"""
     f = open(config_path)
     config_dict = json.load(f)

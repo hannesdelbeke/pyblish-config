@@ -8,7 +8,7 @@
 
 
 from pyblish import api
-import pyblish_config.config_creator_GUI
+from pyblish_config_creator import config_creator_GUI
 import types
 import sys
 
@@ -48,4 +48,4 @@ api.register_host('maya')
 # api.register_plugin_path(r'C:\Projects\tonictools-ta\3rd_party_packages\pyblish_maya\plugins\plugins')  # i tossed the magenta plugins in here i know it's messy
 api.register_plugin_path(r'C:\Projects\tonictools-ta\3rd_party_packages\pyblish_maya\plugins\plugins')
 
-pyblish_config.config_creator_GUI.make_config()
+config_creator_GUI.make_config()
