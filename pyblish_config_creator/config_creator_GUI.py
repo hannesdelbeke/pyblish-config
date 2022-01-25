@@ -171,7 +171,13 @@ class manager_UI(QtWidgets.QWidget):
         if browsed_path:
             self.json_path_output = browsed_path
 
+        # todo fix that
+        #  naively assume differences can be calc between configs
+        #  this wont work if we edit an already different config
+        # this diff is only needed when doing register_plugin -> discover -> plugins ->config
+        # when we edit an alrdy existing config we dont need to do any diffing
         config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
+
         config.save_config_as_json(self.json_path_output, config_data)
 
     def pipeline_config_browse_and_load(self):

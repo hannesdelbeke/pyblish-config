@@ -67,38 +67,24 @@ def save_config_as_json(path, config_data):
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=4)
 
+
 def load_config_from_json(config_path):
     """load a config from a json. can be used on both pipeline and plugin configs"""
     f = open(config_path)
     config_dict = json.load(f)
     return config_dict
 
+
 def diff_pipeline_configs(config_new, config_original):
-    # get differences between config and plugin settings
-    # todo fix that
-    #  naively assume differences can be calc between configs
-    #  this wont work if we edit an already different config
-
-    # this diff is only needed when doing register_plugin -> discover -> plugins ->config
-    # when we edit an alrdy existing config we dont need to do any diffing
-
+    """get differences between config and plugin settings"""
     config_data = {}
     for k, v in config_new.items():
-        # if config2[k] != v:
         config_data[k] = {}
-
         for k2, v2 in v.items():
             if config_original[k][k2] != v2:
                 config_data[k][k2] = v2
-
-        # config_data[k] = v
-
-    # set(self.pipeline_config)
-    # set(self.pipeline_config.items())
-    # difference = set(self.pipeline_config.items()) ^ set(self.original_pipeline_config.items())
-    # config_data = dict(difference)
-
     return config_data
+
 
 def get_pipeline_config_from_plugins(plugins):
     """
@@ -112,6 +98,7 @@ def get_pipeline_config_from_plugins(plugins):
         pipeline_config[plugin.__name__] = get_plugin_config(plugin)
 
     return pipeline_config
+
 
 def get_plugin_config(plugin):
     """
