@@ -189,7 +189,7 @@ class manager_UI(QtWidgets.QWidget):
 
         ## Raw loading of config
         # self.pipeline_config = config.load_config(browsed_path)  # todo verify the loaded config is valid
-        
+
         ## additive loading of config
         loaded_config = config.load_config(browsed_path)
         for plugin_name, plugin_config in loaded_config.items():
@@ -713,7 +713,7 @@ def make_config(discover=True, config=None, qapp=True):
         app.exec_()
 
 
-    if False:
+    if True:
         # app = QtWidgets.QApplication(sys.argv)
 
         m = QtWidgets.QWidget()
