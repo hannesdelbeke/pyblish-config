@@ -4,6 +4,12 @@ import json
 
 # does register_config imply we can have multiple filters?
 # let's name it register because the filter only applies after discover has run.
+
+# options
+# - multiple pipeline filters. apply settings to plugins in order (could error on clash)
+# - multiple pipeline filters, but only 1 active pipeline filter, able to switch pipeline
+# - single pipeline only
+
 # we need to support discover since the pyblish GUI uses it
 # skip_attr = []#'repair', 'id', 'log', 'process', 'version', 'requires']
 
@@ -16,7 +22,7 @@ import json
 # when it just says config this likely is pipeline config
 
 
-def register_config_filter(config_path=None, config_dict=None):
+def register_pipeline_config_filter(config_path=None, config_dict=None):
     """
     register a plugin settings filter from a settings file,
     which overwrites the default plugin settings,
@@ -27,28 +33,33 @@ def register_config_filter(config_path=None, config_dict=None):
     :return: None
     """
 
-    # default_settins (ex all enabled/disabled ....)
+    # we expect either the config path or the config data
+    assert config_path or config_dict, "register_config_filter requires either a config path or a config dict, not both"
+
+    if config_path:
+        f = open(config_path)
+        config_dict = json.load(f)
+    elif not config_dict:
+        raise Exception
+
+    # default_settings (ex all enabled/disabled ....)
     # any plugins not in pipeline, should they be included or exluded
 
     def config_filter_callback(plugins):
-        # we expect either the config path or the config data
-        if config_path:
-            f = open(config_path)
-            config_dict = json.load(f)
-        elif not config_dict:
-            raise Exception
 
-        # # get settings per plugin
-        # for plugin_name, plugin_config in data.items():
-        # # todo raise error when an expected plugin is not found
+        # raise error when an expected plugin is not found
+        plugin_names = [p.data['name'] for p in plugins]
+        for plugin_name in config_dict:
+            if plugin_name not in plugin_names:
+                raise Exception("plugin not found in pipeline: " + plugin_name)
 
         # get settings per plugin
         for plugin in plugins[:]:
             plugin_config = config_dict.get(plugin.__name__, {})  # plugins with same name might clash
 
             for key, value in plugin_config.items():
-                # TODO  differentiate between input classes (action,plugin...)
-                #  and raw input int,str...
+                # TODO  differentiate between input classes (action, plugin...) and raw input int,str...
+                # custom load if value starts with #action| or #plugin|. ex: #action|modulename.action_name
 
                 # aply settings to plugins
                 setattr(plugin, key, value)
