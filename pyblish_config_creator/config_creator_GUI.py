@@ -9,6 +9,8 @@ import copy
 from pyblish_config import config
 from pyblish_config.config import get_pipeline_config_from_plugins
 
+SUPPORTED_TYPES = [int, float, str, bool, list, dict, tuple, type(None), ]
+
 
 def wrap_widget_in_scroll_area(parent, widget):
     """
@@ -260,12 +262,13 @@ class manager_UI(QtWidgets.QWidget):
 
         for widget in self.current_plugin_attributes_widgets:
             attribute_name = widget.property('attribute_name')
-            attribute_container_widget = widget.property('attribute_container_widget')
+            row_index = widget.property('row')
 
             if attribute_name in default_plugin_attributes or attribute_name == '__doc__':
-                attribute_container_widget.setVisible(show_pyblish_attr)
-
-            # widget.setVisible(not widget.isVisible())
+                if show_pyblish_attr:
+                    self.attr_widgets_table.showRow(row_index)
+                else:
+                    self.attr_widgets_table.hideRow(row_index)
 
         self.pipeline_config_refresh_active_checkboxes()
 
@@ -317,13 +320,6 @@ class manager_UI(QtWidgets.QWidget):
         plugin_config_main_layout = QtWidgets.QVBoxLayout(self)
         plugin_config_main_widget.setLayout(plugin_config_main_layout)
 
-        # create second container: attributes_scroll_layout
-        widget_container2 = QtWidgets.QWidget()
-        attributes_scroll_layout = QtWidgets.QVBoxLayout(self)
-        widget_container2.setLayout(attributes_scroll_layout)
-        # wrap the second container in a scroll area
-        widget_scroll = wrap_widget_in_scroll_area(self, widget_container2)
-
         # todo show visual difference default values vs editted, see self.color_widget
         # todo add reset to default settings button
 
@@ -351,54 +347,52 @@ class manager_UI(QtWidgets.QWidget):
         self.hide_pyblish_attributes_widget = QtWidgets.QCheckBox("Hide Pyblish attributes")
         self.hide_pyblish_attributes_widget.stateChanged.connect(self.plugin_config_refresh_attributes)
 
-        # add title, doc, and scroll widgets to main container
-        plugin_config_main_layout.addWidget(widget_plugin_config_title)
-        plugin_config_main_layout.addWidget(doc_scroll_widget)
-        plugin_config_main_layout.addWidget(widget_scroll)
-        plugin_config_main_layout.addWidget(self.hide_pyblish_attributes_widget)
-
-        # create attribute widgets
         self.current_plugin_attributes_widgets = []  # list of attribute widgets
-        for attribute_name, attribute_value in plugin_config.items():  # for every attribute
 
-            # hide_pyblish_attr = self.hide_pyblish_attributes_widget.checkState() == QtCore.Qt.Checked
-            # if hide_pyblish_attr and attribute_name in default_plugin_attributes:
-            #     continue
+        self.attr_widgets_table = QtWidgets.QTableWidget()
+        self.attr_widgets_table.setRowCount(len(plugin_config))
+        self.attr_widgets_table.setColumnCount(3)
+        self.attr_widgets_table.setHorizontalHeaderLabels(["Attribute", "Value", 'Type'])
+        self.attr_widgets_table.verticalHeader().setVisible(False)
+        self.attr_widgets_table.setStyleSheet("QTableWidget { "
+                                                  "background-color: transparent;"
+                                                  "border: 0px solid transparent;"
+                                              "}"
+                                              "QTableWidget::item {"
+                                                  "border: 0px solid transparent;"
+                                                  "padding: 0px 4px 0px 4px;}"
+                                              "}"
+                                              )
+        i = 0
+        for attribute_name, attribute_value in plugin_config.items():
 
 
-            # WIDGET 1: create a widget containing the value
             attribute_widget = self.plugin_config_create_widget_from_attribute(attribute_name, attribute_value)
 
             if not attribute_widget:
-                continue  # skip unsupported types
+                continue  # skip unsupported types ex.functions, actions
 
             self.plugin_config_add_tooltips(attribute_widget, attribute_name)
             if attribute_name not in default_plugin_attributes:
                 self.plugin_config_add_tooltips(attribute_widget, attribute_name, plugin_config['__doc__'])
 
-            # TODO data passed by name, add support for plugins with same
             self.current_plugin_attributes_widgets.append(attribute_widget)
 
-            # WIDGET 2: create widget for the attribute name
-            attribute_name_label = QtWidgets.QLabel(attribute_name)
+            lbl = QtWidgets.QLabel(attribute_name)
 
-            # layout widgets next each other
-            layout_attr = QtWidgets.QHBoxLayout(plugin_config_main_widget)
+            # TODO create a widget for the type
 
-            attr_widget_container = QtWidgets.QWidget()
-            attr_widget_container.setLayout(layout_attr)
+            self.attr_widgets_table.setCellWidget(i, 0, lbl)
+            self.attr_widgets_table.setCellWidget(i, 1, attribute_widget)
+
+            i += 1
 
             attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
             attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
-            attribute_widget.setProperty('attribute_container_widget', attr_widget_container)
+            attribute_widget.setProperty('row', i)  # store the row in the widget
 
-            layout_attr.addWidget(attribute_name_label)
-            layout_attr.addWidget(attribute_widget)
-            layout_attr.setMargin(0)
-            # Todo link widget to label and plugin parent widget (button)
-
-
-            attributes_scroll_layout.addWidget(attr_widget_container)
+        self.attr_widgets_table.resizeColumnsToContents()
+        self.attr_widgets_table.resizeRowsToContents()
 
             # todo WIP buttons to change type for attribute, incase we cant find type from value. ex. empty value.
             # change_type_button = QtWidgets.QPushButton('change type')
@@ -406,7 +400,11 @@ class manager_UI(QtWidgets.QWidget):
             # layout_attr.addWidget(change_type_button)
             # layout_attr.addWidget(type_button)
 
-        attributes_scroll_layout.addStretch()
+        # add title, doc, and scroll widgets to main container
+        plugin_config_main_layout.addWidget(widget_plugin_config_title)
+        plugin_config_main_layout.addWidget(doc_scroll_widget)
+        plugin_config_main_layout.addWidget(self.attr_widgets_table)
+        plugin_config_main_layout.addWidget(self.hide_pyblish_attributes_widget)
 
         self.hide_pyblish_attributes_widget.setChecked(self.hide_pyblish_attributes)
         # self.hide_pyblish_attributes_widget.setChecked(True) # do this at the end, it triggers a refresh
