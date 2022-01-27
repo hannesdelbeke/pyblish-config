@@ -391,11 +391,11 @@ class manager_UI(QtWidgets.QWidget):
             self.attr_widgets_table.setCellWidget(i, 1, type_widget)
             self.attr_widgets_table.setCellWidget(i, 2, attribute_widget)
 
-            i += 1
-
             attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
             attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
             attribute_widget.setProperty('row', i)  # store the row in the widget
+
+            i += 1
 
         # self.attr_widgets_table.resizeColumnsToContents()
         # self.attr_widgets_table.resizeRowsToContents()
