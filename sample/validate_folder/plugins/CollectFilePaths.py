@@ -2,8 +2,8 @@ import pyblish.api
 import pathlib2 as pathlib
 
 
-# class Options(object):
-#     pass
+class Options(object):
+    pass
 
 class CollectFilePaths(pyblish.api.ContextPlugin):
     """
@@ -19,9 +19,9 @@ class CollectFilePaths(pyblish.api.ContextPlugin):
     # hosts = ["maya"]
     families = ['paths']
 
-    # options = Options()
-    # options.folder_path = r'C:\Projects\pyblish-plugin-manager\sample\test files\projects\final fantasia FANTASY RPG\meshes'
-    # options.combine_paths = False
+    options = Options()
+    options.folder_path = r'C:\Projects\pyblish-plugin-manager\sample\test files\projects\final fantasia FANTASY RPG\meshes'
+    options.combine_paths = False
 
     folder_path = r'C:\Projects\pyblish-plugin-manager\sample\test files\projects\final fantasia FANTASY RPG\meshes'
     combine_paths = False
