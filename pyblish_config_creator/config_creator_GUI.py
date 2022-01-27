@@ -380,10 +380,17 @@ class manager_UI(QtWidgets.QWidget):
 
             lbl = QtWidgets.QLabel(attribute_name)
 
-            # TODO create a widget for the type
+            # create type selector
+            type_widget = QtWidgets.QComboBox()
+            type_widget.addItems([x.__name__ for x in SUPPORTED_TYPES])
+            print(attribute_value)
+            if type(attribute_value) in SUPPORTED_TYPES:
+                type_widget.setCurrentText(type(attribute_value).__name__)
+                #type_widget.currentTextChanged.connect(lambda x, attribute_name=attribute_name: self.plugin_config_type_changed(x, attribute_name))
 
             self.attr_widgets_table.setCellWidget(i, 0, lbl)
-            self.attr_widgets_table.setCellWidget(i, 1, attribute_widget)
+            self.attr_widgets_table.setCellWidget(i, 1, type_widget)
+            self.attr_widgets_table.setCellWidget(i, 2, attribute_widget)
 
             i += 1
 
@@ -393,12 +400,8 @@ class manager_UI(QtWidgets.QWidget):
 
         self.attr_widgets_table.resizeColumnsToContents()
         self.attr_widgets_table.resizeRowsToContents()
-
-            # todo WIP buttons to change type for attribute, incase we cant find type from value. ex. empty value.
-            # change_type_button = QtWidgets.QPushButton('change type')
-            # type_button = QtWidgets.QPushButton(str(type(attribute_value)))
-            # layout_attr.addWidget(change_type_button)
-            # layout_attr.addWidget(type_button)
+        # stretch last column
+        self.attr_widgets_table.horizontalHeader().setStretchLastSection(True)
 
         # add title, doc, and scroll widgets to main container
         plugin_config_main_layout.addWidget(widget_plugin_config_title)
