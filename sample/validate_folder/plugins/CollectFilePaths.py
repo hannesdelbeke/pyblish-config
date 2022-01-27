@@ -1,6 +1,10 @@
 import pyblish.api
 import pathlib2 as pathlib
 
+
+# class Options(object):
+#     pass
+
 class CollectFilePaths(pyblish.api.ContextPlugin):
     """
     Collect all file paths in a folder as pyblish instances.
@@ -14,6 +18,10 @@ class CollectFilePaths(pyblish.api.ContextPlugin):
     order = pyblish.api.CollectorOrder
     # hosts = ["maya"]
     families = ['paths']
+
+    # options = Options()
+    # options.folder_path = r'C:\Projects\pyblish-plugin-manager\sample\test files\projects\final fantasia FANTASY RPG\meshes'
+    # options.combine_paths = False
 
     folder_path = r'C:\Projects\pyblish-plugin-manager\sample\test files\projects\final fantasia FANTASY RPG\meshes'
     combine_paths = False
