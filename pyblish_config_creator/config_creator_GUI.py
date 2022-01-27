@@ -240,7 +240,6 @@ class manager_UI(QtWidgets.QWidget):
             for key, value in current_config.items():
                 if original_config[key] != value:
                     value_changed = True
-                    # print(key, original_config[key], value)
                     break
 
             self._color_widget(plugin_widget, value_changed)
@@ -384,7 +383,6 @@ class manager_UI(QtWidgets.QWidget):
             # create type selector
             type_widget = QtWidgets.QComboBox()
             type_widget.addItems([x.__name__ for x in SUPPORTED_TYPES])
-            print(attribute_value)
             if type(attribute_value) in SUPPORTED_TYPES:
                 type_widget.setCurrentText(type(attribute_value).__name__)
                 #type_widget.currentTextChanged.connect(lambda x, attribute_name=attribute_name: self.plugin_config_type_changed(x, attribute_name))
@@ -399,10 +397,11 @@ class manager_UI(QtWidgets.QWidget):
             attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
             attribute_widget.setProperty('row', i)  # store the row in the widget
 
-        self.attr_widgets_table.resizeColumnsToContents()
-        self.attr_widgets_table.resizeRowsToContents()
+        # self.attr_widgets_table.resizeColumnsToContents()
+        # self.attr_widgets_table.resizeRowsToContents()
         # stretch last column
         self.attr_widgets_table.horizontalHeader().setStretchLastSection(True)
+        # self.attr_widgets_table.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
         # add title, doc, and scroll widgets to main container
         plugin_config_main_layout.addWidget(widget_plugin_config_title)
