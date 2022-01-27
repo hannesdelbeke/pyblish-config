@@ -33,10 +33,10 @@ class plugin_widget(object):
         self.name = ""
 
 
-# default_plugin_attributes = dir(pyblish.plugin.Plugin)
+default_plugin_attributes = dir(pyblish.plugin.Plugin)
 # default_plugin_attributes.append('order')
-default_plugin_attributes = ['actions', 'active', 'families', 'order', 'plugin', 'hosts', 'label', 'match', 'optional',
-                      'targets', 'version', 'requires', 'log', 'id', 'repair']
+# default_plugin_attributes = ['actions', 'active', 'families', 'order', 'plugin', 'hosts', 'label', 'match', 'optional',
+#                       'targets', 'version', 'requires', 'log', 'id', 'repair']
 # todo read these from plugin class directly
 
 
@@ -370,7 +370,8 @@ class manager_UI(QtWidgets.QWidget):
             attribute_widget = self.plugin_config_create_widget_from_attribute(attribute_name, attribute_value)
 
             if not attribute_widget:
-                continue  # skip unsupported types ex.functions, actions
+                attribute_widget = QtWidgets.QLabel(str(attribute_value))
+                # continue  # skip unsupported types ex.functions, actions
 
             self.plugin_config_add_tooltips(attribute_widget, attribute_name)
             if attribute_name not in default_plugin_attributes:
