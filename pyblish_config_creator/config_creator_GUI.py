@@ -33,7 +33,8 @@ class plugin_widget(object):
         self.name = ""
 
 
-
+# default_plugin_attributes = dir(pyblish.plugin.Plugin)
+# default_plugin_attributes.append('order')
 default_plugin_attributes = ['actions', 'active', 'families', 'order', 'plugin', 'hosts', 'label', 'match', 'optional',
                       'targets', 'version', 'requires', 'log', 'id', 'repair']
 # todo read these from plugin class directly
