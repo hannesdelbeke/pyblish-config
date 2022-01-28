@@ -47,3 +47,13 @@ def actions_from_module(module):
         actions.append(obj)
 
     return actions
+
+def actions_from_plugins(plugins):
+    """Return actions from plug-ins
+    Returns:
+        set of plug-ins, or empty set if none is found.
+    """
+    all_actions = set()
+    for plugin in plugins:
+        all_actions.add(set(plugin.actions))
+    return all_actions
