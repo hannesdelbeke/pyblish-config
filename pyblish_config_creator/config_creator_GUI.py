@@ -124,7 +124,7 @@ class manager_UI(QtWidgets.QWidget):
         """
 
         # get path
-        browsed_path = self._open_qfiledialog().replace("/", "\\")
+        browsed_path = self._save_qfiledialog().replace("/", "\\")
         if browsed_path:
             self.json_path_output = browsed_path
 
@@ -611,14 +611,23 @@ class manager_UI(QtWidgets.QWidget):
 
     # helper functions
 
-    def _open_qfiledialog(self):
+    # def _open_qfiledialog(self):
+    #     """
+    #     Used to browse to the load location for the config
+    #     """
+    #     title = "save config file"
+    #     file_types = "Json (*.json)"
+    #     root_folder = ""
+    #     return QtWidgets.QFileDialog.getOpenFileName(self, title, root_folder, file_types)[0]
+
+    def _save_qfiledialog(self):
         """
         Used to browse to the save location for the config
         """
         title = "save config file"
         file_types = "Json (*.json)"
         root_folder = ""
-        return QtWidgets.QFileDialog.getOpenFileName(self, title, root_folder, file_types)[0]
+        return QtWidgets.QFileDialog.getSaveFileName(self, title, root_folder, file_types)[0]
 
     @staticmethod
     def get_value_from_widget(widget):
