@@ -546,7 +546,7 @@ class manager_UI(QtWidgets.QWidget):
             value_str = ''
 
             for x in value:
-                if len(value_str) > 1:
+                if len(value_str) > 0:
                     value_str += ','
                 value_str += str(x)
             w = QtWidgets.QLineEdit(value_str)
