@@ -663,8 +663,10 @@ class manager_UI(QtWidgets.QWidget):
 
         # convert value to right format / type
         value_type = widget.property('attribute_type')
-        if value_type is list:
+        if value_type is list:  # add tuple support
             value = text.split(',')
+            if not text:
+                value = []
 
         return value
 
