@@ -1,7 +1,7 @@
 import sys
 
 import pyblish.api
-from Qt import QtWidgets, QtCore
+from Qt import QtWidgets, QtCore, QtGui
 from Qt.QtWidgets import QFileDialog
 
 import copy
@@ -34,10 +34,6 @@ class plugin_widget(object):
 
 
 default_plugin_attributes = dir(pyblish.plugin.Plugin)
-# default_plugin_attributes.append('order')
-# default_plugin_attributes = ['actions', 'active', 'families', 'order', 'plugin', 'hosts', 'label', 'match', 'optional',
-#                       'targets', 'version', 'requires', 'log', 'id', 'repair']
-# todo read these from plugin class directly
 
 
 class manager_UI(QtWidgets.QWidget):
@@ -51,7 +47,8 @@ class manager_UI(QtWidgets.QWidget):
         self.hide_pyblish_attributes = True
 
         # create plugins list widget and layout
-        self.widgets_plugin_buttons = []
+
+        # self.widgets_plugin_buttons = []
         self.widget_plugins_list = self.pipeline_config_create_plugin_list()   # the scroll list that contains the plugin buttons
         self.widget_plugins_list.setMinimumWidth(200)
         self.widget_plugins_list.setMaximumWidth(200)
@@ -63,6 +60,7 @@ class manager_UI(QtWidgets.QWidget):
 
         # Layout left and right widgets
         self.hbox_main_layout = QtWidgets.QHBoxLayout(self)
+        # self.hbox_main_layout.addWidget(self.plugin_list_widget)
         self.hbox_main_layout.addWidget(self.widget_plugins_list)  # self.config_main_widget
         # self.hbox_main_layout.addWidget(self.widget_plugin_config_container_main)  # self.widget_plugin_config
 
@@ -74,23 +72,22 @@ class manager_UI(QtWidgets.QWidget):
 
     def pipeline_config_create_plugin_list(self):
 
+
+        self.plugin_list_widget = QtWidgets.QListWidget(self)
+        self.plugin_list_widget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.plugin_list_widget.setDragEnabled(True)
+        self.plugin_list_widget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.plugin_list_widget.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.plugin_list_widget.setDropIndicatorShown(True)
+        self.plugin_list_widget.setAcceptDrops(True)
+        self.plugin_list_widget.setDragDropOverwriteMode(False)
+
         self.vbox_config_layout = QtWidgets.QVBoxLayout(self)  # this needs to happen before scrollarea
         # create widget, apply layout, add widgets to layout.
 
         # create config widget
         widget = QtWidgets.QWidget()
         widget.setLayout(self.vbox_config_layout)
-
-        plugin_button_container_widget = QtWidgets.QWidget(self)
-        self.vbox_plugins = QtWidgets.QVBoxLayout(self)
-        plugin_button_container_widget.setLayout(self.vbox_plugins)
-
-        # self.config_button_layout = QtWidgets.QHBoxLayout()
-        # self.config_button_layout.addWidget(self.load_config_button)
-        # self.config_button_layout.addWidget(self.save_config_button)
-        #
-        # create scroll area
-        widget_scroll = wrap_widget_in_scroll_area(self, plugin_button_container_widget)
 
         # create config buttons
         # self.register_plugins_button = QtWidgets.QPushButton('register plugins')
@@ -108,61 +105,18 @@ class manager_UI(QtWidgets.QWidget):
         # dropdown.addItems(['register plugins', 'configure pipeline'])
 
         # self.vbox_config_layout.addWidget(dropdown)
-        self.vbox_config_layout.addWidget(widget_scroll)
+        # self.vbox_config_layout.addWidget(widget_scroll)
+        self.vbox_config_layout.addWidget(self.plugin_list_widget)
+
         self.vbox_config_layout.addLayout(self.config_button_layout)
 
         return widget
 
-    def pipeline_config_refresh_active_checkboxes(self):
-        # todo atm this method runs several times, optimise and only run once for each plugin
-        for w in self.widgets_plugin_checkboxes:
-            plugin_name = w.property('plugin_name')
-            is_active = self.pipeline_config[plugin_name]['active']
-            w.setChecked(is_active)
 
     def pipeline_config_plugin_buttons_create_widget(self):
-        self.widgets_plugin_checkboxes = []
-        for plugin_name, _ in self.pipeline_config.items():
 
-            plugin_active_checkbox_widget = QtWidgets.QCheckBox()
-            plugin_active_checkbox_widget.stateChanged.connect(self.pipeline_config_toggle_plugin_active)
-            plugin_active_checkbox_widget.setProperty('plugin_name', plugin_name)
-
-            self.widgets_plugin_checkboxes.append(plugin_active_checkbox_widget)
-            # signal_func = w.stateChanged
-            # w.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-
-            button = QtWidgets.QPushButton(plugin_name, self.widget_plugins_list)
-            button.clicked.connect(self.plugin_config_show_clicked)
-            self.widgets_plugin_buttons.append(button)
-            # button.setCenterAlignment()
-            # button.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
-
-            layout = QtWidgets.QHBoxLayout(self)
-            layout.addWidget(plugin_active_checkbox_widget, 0)
-            layout.addWidget(button)
-            layout.addStretch()
-            # layout.setStretch(0, 0)
-            self.vbox_plugins.addLayout(layout)
-        self.pipeline_config_refresh_active_checkboxes()
-        self.vbox_plugins.addStretch()  # add stretch on bottom to push all buttons to top instead of center
-
-    def pipeline_config_toggle_plugin_active(self):
-        sender = self.sender()
-        plugin_name = sender.property('plugin_name')
-        self.pipeline_config[plugin_name]['active'] = sender.checkState() == QtCore.Qt.Checked
-
-        # trigger redraw of plugin config
-        self.plugin_config_show(plugin_name)
-
-        # refresh colors
-        self.plugin_config_color_attribute_widgets()
-        self.pipeline_config_color_plugin_widgets()
-
-
-    def pipeline_config_delete_plugin_buttons(self):
-        for button in self.widgets_plugin_buttons:
-            button.deleteLater()
+        self.plugin_list_widget.addItems(self.pipeline_config.keys())
+        self.plugin_list_widget.itemClicked.connect(self.plugin_config_show_clicked)
 
     def pipeline_config_browse_and_save(self):
         """
@@ -214,12 +168,12 @@ class manager_UI(QtWidgets.QWidget):
         # might not be returned because it has a compile error since a recent update
 
     def pipeline_config_refresh(self):
-        self.pipeline_config_delete_plugin_buttons()
+        self.plugin_list_widget.clear()
         self.pipeline_config_plugin_buttons_create_widget()
 
     def pipeline_config_load(self, pipeline_config):
         self.original_pipeline_config = copy.deepcopy(pipeline_config)
-        self.pipeline_config = copy.deepcopy(pipeline_config)  # pipeline_config
+        self.pipeline_config = copy.deepcopy(pipeline_config)
 
         # plugin screen
         self.pipeline_config_refresh()
@@ -228,29 +182,40 @@ class manager_UI(QtWidgets.QWidget):
         self.plugin_config_show_first()
 
     def pipeline_config_color_plugin_widgets(self):
-        for plugin_widget in self.widgets_plugin_buttons:
+        pass
+        # for plugin_widget in self.widgets_plugin_buttons:
+
+        items = [self.plugin_list_widget.item(x) for x in range(self.plugin_list_widget.count())]
+
+        for item in items:
 
             # check if value changed
             value_changed = False
 
-            plugin_name = plugin_widget.text()
+            plugin_name = item.text()
             original_config = self.original_pipeline_config[plugin_name]
             current_config = self.pipeline_config[plugin_name]
 
             for key, value in current_config.items():
                 if original_config[key] != value:
+                    print("value changed", key, value, original_config[key])
                     value_changed = True
                     break
 
-            self._color_widget(plugin_widget, value_changed)
+            if value_changed:
+                # set color yellow
+                color = QtGui.QColor(255, 200, 100)
+            else:
+                # set color white
+                color = QtGui.QColor(255, 255, 255)
+            item.setBackground(color)
 
-    # plugin config
 
     def plugin_config_show_first(self):
-        # display  plugin settings from first plugin, prevents a weird layout change
-        if self.widgets_plugin_buttons:
-            plugin_name = self.widgets_plugin_buttons[0].text()
-            self.plugin_config_show(plugin_name)
+        # get first item text
+        plugin_name = self.plugin_list_widget.item(0).text()
+        self.plugin_config_show(plugin_name)
+
 
     def plugin_config_refresh_attributes(self):
         """
@@ -270,11 +235,9 @@ class manager_UI(QtWidgets.QWidget):
                 else:
                     self.attr_widgets_table.hideRow(row_index)
 
-        self.pipeline_config_refresh_active_checkboxes()
-
     def plugin_config_show_clicked(self, *args):
         sender = self.sender()
-        plugin_name = sender.text()
+        plugin_name = sender.selectedItems()[0].text()
         self.plugin_config_show(plugin_name)
 
     def plugin_config_show(self, plugin_name):
@@ -302,13 +265,6 @@ class manager_UI(QtWidgets.QWidget):
     def plugin_config_create_widget(self, plugin_config, plugin_name):
         """
         create the setting screen for the plugin you selected
-
-        ------------------- -------------------
-        | attribute_1_name | attribute_1_value |
-        | attribute_2_name | attribute_2_value |
-        | ...              | ...               |
-        ------------------- -------------------
-
         :param plugin_config:
         :param plugin_name:
         :return: the plugin config widget
@@ -320,7 +276,6 @@ class manager_UI(QtWidgets.QWidget):
         plugin_config_main_layout = QtWidgets.QVBoxLayout(self)
         plugin_config_main_widget.setLayout(plugin_config_main_layout)
 
-        # todo show visual difference default values vs editted, see self.color_widget
         # todo add reset to default settings button
 
         # create title and doc widget
@@ -332,16 +287,11 @@ class manager_UI(QtWidgets.QWidget):
         if doc_string == 'None':
             doc_string = ''
         self.widget_plugin_doc = QtWidgets.QLabel(doc_string)
-        # layout = QtWidgets.QVBoxLayout(self)
-        # self.widget_plugin_doc.setLayout(layout)
-        # layout.setMargin(0)
 
         doc_scroll_widget = wrap_widget_in_scroll_area(self, self.widget_plugin_doc)
         doc_scroll_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         doc_scroll_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         doc_scroll_widget.setMaximumHeight(80)
-        # doc_scroll_widget.SizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        # doc_scroll_widget.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
         # create checkbox hide pyblish attributes
         self.hide_pyblish_attributes_widget = QtWidgets.QCheckBox("Hide Pyblish attributes")
@@ -360,14 +310,33 @@ class manager_UI(QtWidgets.QWidget):
                                               "}"
                                               "QTableWidget::item {"
                                                   "border: 0px solid transparent;"
-                                                  "padding: 0px 4px 0px 4px;}"
+                                              #    "padding: 0px 4px 0px 4px;}"
                                               "}"
+                                              "QLabel {padding: 0px 4px 0px 4px;}"
+                                              "QCheckBox {padding: 0px 4px 0px 4px;}"
                                               )
+
+        # store list of types for default
+        # iterables by default contain comma seperated strings
+        default_plugin_attribute_types = {
+            'actions': [],
+            'active': bool,
+            'families': [],
+            'hosts': [],
+            'label': str,
+            'match': int,
+            'optional': bool,
+            'order': float,
+            'requires': str,
+            'targets': [],
+            'version': tuple,
+            '__doc__': str,
+        }
+
         i = 0
         for attribute_name, attribute_value in plugin_config.items():
-
-
-            attribute_widget = self.plugin_config_create_widget_from_attribute(attribute_name, attribute_value)
+            attribute_type = default_plugin_attribute_types.get(attribute_name, None)
+            attribute_widget = self.plugin_config_create_widget_from_attribute(attribute_name, attribute_value, attribute_type)
 
             if not attribute_widget:
                 attribute_widget = QtWidgets.QLabel(str(attribute_value))
@@ -375,21 +344,22 @@ class manager_UI(QtWidgets.QWidget):
 
             self.plugin_config_add_tooltips(attribute_widget, attribute_name)
             if attribute_name not in default_plugin_attributes:
-                self.plugin_config_add_tooltips(attribute_widget, attribute_name, plugin_config['__doc__'])
+                self.plugin_config_add_tooltips(attribute_widget, attribute_name, plugin_config.get('__doc__', ''))
 
             self.current_plugin_attributes_widgets.append(attribute_widget)
 
             lbl = QtWidgets.QLabel(attribute_name)
 
-            # create type selector
-            type_widget = QtWidgets.QComboBox()
-            type_widget.addItems([x.__name__ for x in SUPPORTED_TYPES])
-            if type(attribute_value) in SUPPORTED_TYPES:
-                type_widget.setCurrentText(type(attribute_value).__name__)
-                #type_widget.currentTextChanged.connect(lambda x, attribute_name=attribute_name: self.plugin_config_type_changed(x, attribute_name))
+            if attribute_name not in default_plugin_attributes:
+                # create type selector
+                type_widget = QtWidgets.QComboBox()
+                type_widget.addItems([x.__name__ for x in SUPPORTED_TYPES])
+                if type(attribute_value) in SUPPORTED_TYPES:
+                    type_widget.setCurrentText(type(attribute_value).__name__)
+                    #type_widget.currentTextChanged.connect(lambda x, attribute_name=attribute_name: self.plugin_config_type_changed(x, attribute_name))
+                self.attr_widgets_table.setCellWidget(i, 1, type_widget)
 
             self.attr_widgets_table.setCellWidget(i, 0, lbl)
-            self.attr_widgets_table.setCellWidget(i, 1, type_widget)
             self.attr_widgets_table.setCellWidget(i, 2, attribute_widget)
 
             attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
@@ -398,11 +368,9 @@ class manager_UI(QtWidgets.QWidget):
 
             i += 1
 
-        # self.attr_widgets_table.resizeColumnsToContents()
-        # self.attr_widgets_table.resizeRowsToContents()
-        # stretch last column
+        self.attr_widgets_table.resizeColumnsToContents()
+        self.attr_widgets_table.resizeRowsToContents()
         self.attr_widgets_table.horizontalHeader().setStretchLastSection(True)
-        # self.attr_widgets_table.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
 
         # add title, doc, and scroll widgets to main container
         plugin_config_main_layout.addWidget(widget_plugin_config_title)
@@ -453,7 +421,7 @@ class manager_UI(QtWidgets.QWidget):
 
         return value_changed
 
-    def plugin_config_create_widget_from_attribute(self, attr_name, attr_value):
+    def plugin_config_create_widget_from_attribute(self, attr_name, attr_value, attr_type=None):
         """
         Create a widget to edit the attribute.
         Add the attribute name to the widget as a property: attribute_name
@@ -463,9 +431,7 @@ class manager_UI(QtWidgets.QWidget):
         if attr_name.lower() == 'actions':
             return QtWidgets.QLabel(str(attr_value))  # return default widget
 
-        widget = self.plugin_config_create_widget_from_attr_type(attr_value)
-
-
+        widget = self.plugin_config_create_widget_from_attr_type(attr_value, attr_type)
 
         return widget
 
@@ -513,7 +479,7 @@ class manager_UI(QtWidgets.QWidget):
         if name in attribute_doc.keys():
             w.setToolTip(attribute_doc[name])
 
-    def plugin_config_create_widget_from_attr_type(self, value):
+    def plugin_config_create_widget_from_attr_type(self, value, attr_type=None):
         """
         decide which widget to use based on the attribute type
         :param attr:
@@ -522,26 +488,34 @@ class manager_UI(QtWidgets.QWidget):
         """
         w = None
         signal_func = None  # state to connect too
-        if type(value) is bool:
+        if not attr_type:
+            if isinstance(value, str):
+                attr_type = str
+            elif isinstance(value, list):  # or attr_type is tuple:
+                attr_type = list
+            else:
+                attr_type = type(value)
+
+        if attr_type is bool:
             w = QtWidgets.QCheckBox()
             w.setChecked(value)
             signal_func = w.stateChanged
 
-        elif type(value) is int:
+        elif attr_type is int:
             w = QtWidgets.QSpinBox()
             w.setValue(value)
             signal_func = w.valueChanged
 
-        elif type(value) is float:
+        elif attr_type is float:
             w = QtWidgets.QDoubleSpinBox()
             w.setValue(value)
             signal_func = w.valueChanged
 
-        elif isinstance(value, str):
+        elif attr_type is str:
             w = QtWidgets.QLineEdit(value)
             signal_func = w.textChanged
 
-        elif isinstance(value, list):
+        elif attr_type is list:
             # list to comma separated string
             value_str = ''
 
@@ -633,7 +607,7 @@ class manager_UI(QtWidgets.QWidget):
 
         self.plugin_config_color_attribute_widgets()  # update colors when changing the widget
         self.pipeline_config_color_plugin_widgets()
-        self.pipeline_config_refresh_active_checkboxes()
+        # self.pipeline_config_refresh_active_checkboxes()
 
     # helper functions
 

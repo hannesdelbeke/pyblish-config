@@ -120,8 +120,10 @@ def get_plugin_config(plugin):
     # for every plugin, store all settings in the plugin config
     plugin_config = {}
     for attr in dir(plugin):
-        if not attr.startswith('_') and attr not in ('id', 'log'):  # skip id & log, you should never change these
+        if not attr.startswith('_') and attr not in ('id', 'log'):  # skip private, skip id & log, you should never change these
             value = getattr(plugin, attr)
+            if hasattr(value, '__call__'):  # skip functions
+                continue
             plugin_config[attr] = value
-    plugin_config['__doc__'] = plugin.__doc__
+    # plugin_config['__doc__'] = plugin.__doc__
     return plugin_config
