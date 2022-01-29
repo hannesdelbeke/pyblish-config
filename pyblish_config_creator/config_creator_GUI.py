@@ -9,6 +9,8 @@ import copy
 from pyblish_config import config
 from pyblish_config.config import get_pipeline_config_from_plugins
 
+from pathlib import Path
+
 SUPPORTED_TYPES = [int, float, str, bool, list, dict, tuple, type(None), ]
 
 
@@ -104,9 +106,21 @@ class manager_UI(QtWidgets.QWidget):
         # dropdown = QtWidgets.QComboBox()
         # dropdown.addItems(['register plugins', 'configure pipeline'])
 
+
+        label = QtWidgets.QLabel('pipeline:')
         # self.vbox_config_layout.addWidget(dropdown)
         # self.vbox_config_layout.addWidget(widget_scroll)
         self.vbox_config_layout.addWidget(self.plugin_list_widget)
+        # text fill box
+        self.config_name_widget = QtWidgets.QTextEdit()
+        self.config_name_widget.setFixedHeight(20)
+        self.config_name_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.config_name_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(self.config_name_widget)
+        self.vbox_config_layout.addLayout(layout)
 
         self.vbox_config_layout.addLayout(self.config_button_layout)
 
@@ -169,6 +183,9 @@ class manager_UI(QtWidgets.QWidget):
             for attr_name, value in plugin_config.items():
                 self.pipeline_config[plugin_name][attr_name] = value
 
+        filename = Path(browsed_path).stem
+        self.config_name_widget.setText(filename)
+
         # refresh colors
         self.plugin_config_color_attribute_widgets()
         self.pipeline_config_color_plugin_widgets()
@@ -208,7 +225,6 @@ class manager_UI(QtWidgets.QWidget):
 
             for key, value in current_config.items():
                 if original_config[key] != value:
-                    print("value changed", key, value, original_config[key])
                     value_changed = True
                     break
 
@@ -311,8 +327,8 @@ class manager_UI(QtWidgets.QWidget):
 
         self.attr_widgets_table = QtWidgets.QTableWidget()
         self.attr_widgets_table.setRowCount(len(plugin_config))
-        self.attr_widgets_table.setColumnCount(3)
-        self.attr_widgets_table.setHorizontalHeaderLabels(["Attribute", "Value", 'Type'])
+        self.attr_widgets_table.setColumnCount(2)
+        self.attr_widgets_table.setHorizontalHeaderLabels(["Attribute", "Value"])
         self.attr_widgets_table.verticalHeader().setVisible(False)
         self.attr_widgets_table.setStyleSheet("QTableWidget { "
                                                   "background-color: transparent;"
@@ -360,17 +376,18 @@ class manager_UI(QtWidgets.QWidget):
 
             lbl = QtWidgets.QLabel(attribute_name)
 
-            if attribute_name not in default_plugin_attributes:
-                # create type selector
-                type_widget = QtWidgets.QComboBox()
-                type_widget.addItems([x.__name__ for x in SUPPORTED_TYPES])
-                if type(attribute_value) in SUPPORTED_TYPES:
-                    type_widget.setCurrentText(type(attribute_value).__name__)
-                    #type_widget.currentTextChanged.connect(lambda x, attribute_name=attribute_name: self.plugin_config_type_changed(x, attribute_name))
-                self.attr_widgets_table.setCellWidget(i, 1, type_widget)
+            # type
+            # if attribute_name not in default_plugin_attributes:
+            #     # create type selector
+            #     type_widget = QtWidgets.QComboBox()
+            #     type_widget.addItems([x.__name__ for x in SUPPORTED_TYPES])
+            #     if type(attribute_value) in SUPPORTED_TYPES:
+            #         type_widget.setCurrentText(type(attribute_value).__name__)
+            #         #type_widget.currentTextChanged.connect(lambda x, attribute_name=attribute_name: self.plugin_config_type_changed(x, attribute_name))
+            #     self.attr_widgets_table.setCellWidget(i, 2, type_widget)
 
             self.attr_widgets_table.setCellWidget(i, 0, lbl)
-            self.attr_widgets_table.setCellWidget(i, 2, attribute_widget)
+            self.attr_widgets_table.setCellWidget(i, 1, attribute_widget)
 
             attribute_widget.setObjectName('attr_widget_' + attribute_name)  # not used but nice to name your widgets
             attribute_widget.setProperty('attribute_name', attribute_name)  # store the attribute name in the widget
@@ -501,7 +518,7 @@ class manager_UI(QtWidgets.QWidget):
         if not attr_type:
             if isinstance(value, str):
                 attr_type = str
-            elif isinstance(value, list):  # or attr_type is tuple:
+            elif isinstance(value, list) or attr_type is tuple:
                 attr_type = list
             else:
                 attr_type = type(value)
@@ -636,8 +653,8 @@ class manager_UI(QtWidgets.QWidget):
         """
         title = "save config file"
         file_types = "Json (*.json)"
-        root_folder = ""
-        return QtWidgets.QFileDialog.getSaveFileName(self, title, root_folder, file_types)[0]
+        default_name = self.config_name_widget.toPlainText()
+        return QtWidgets.QFileDialog.getSaveFileName(self, title, default_name, file_types)[0]
 
     @staticmethod
     def get_value_from_widget(widget):
