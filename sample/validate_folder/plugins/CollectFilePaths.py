@@ -24,9 +24,6 @@ class CollectFilePaths(pyblish.api.ContextPlugin):
     # options.combine_paths = False
 
     folder_path = r'C:\Projects\pyblish-plugin-manager\sample\test files\projects\final fantasia FANTASY RPG\meshes'
-    folder_path_empty = ''
-    folder_path_None = None
-
     file_names = []
 
     combine_paths = False
