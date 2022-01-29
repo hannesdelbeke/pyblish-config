@@ -9,7 +9,10 @@ import copy
 from pyblish_config import config
 from pyblish_config.config import get_pipeline_config_from_plugins
 
-from pathlib import Path
+try:
+    from pathlib import Path
+except:
+    from pathlib2 import Path
 
 SUPPORTED_TYPES = [int, float, str, bool, list, dict, tuple, type(None), ]
 
