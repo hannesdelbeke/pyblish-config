@@ -92,7 +92,12 @@ def diff_pipeline_configs(config_new, config_original):
     for k, v in config_new.items():
         config_data[k] = {}
         for k2, v2 in v.items():
-            if config_original[k][k2] != v2:
+            original_value = config_original[k][k2]
+            if original_value != v2:
+
+                if not original_value and not v2:  # example empty string and None
+                    continue
+
                 config_data[k][k2] = v2
     return config_data
 
