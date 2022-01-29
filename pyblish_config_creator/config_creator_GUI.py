@@ -722,7 +722,7 @@ class manager_UI(QtWidgets.QWidget):
 
 # todo would be cool if pipeline didnt just filter but also saved locations to paths of plugins
 
-def make_config(discover=True, config=None, qapp=True):
+def make_config(discover=True, config=None):
     if discover:
 
         # get all plugins from pyblish
@@ -737,7 +737,8 @@ def make_config(discover=True, config=None, qapp=True):
         plugins = pyblish.api.discover()
         config = get_pipeline_config_from_plugins(plugins)
 
-    if qapp:
+    app = QtWidgets.QApplication.instance()
+    if app is None:
         app = QtWidgets.QApplication(sys.argv)
 
     m = manager_UI()
@@ -747,7 +748,7 @@ def make_config(discover=True, config=None, qapp=True):
 
     m.show()
 
-    if qapp:
+    if app:
         app.exec_()
 
 
@@ -826,4 +827,4 @@ def make_config(discover=True, config=None, qapp=True):
 # import pyblish_config.config_creator_GUI as gui
 # reload(gui)
 #
-# test = gui.make_config(qapp=False)
+# test = gui.make_config()
