@@ -152,6 +152,7 @@ class manager_UI(QtWidgets.QWidget):
         config.save_config_as_json(self.json_path_output, config_data)
 
     def bake_plugin_order_from_list_order(self, config_data):
+        """mutate input config_data to bake plugin order from list order"""
         items = [self.plugin_list_widget.item(x) for x in range(self.plugin_list_widget.count())]
         i = 0
         for item in items:
@@ -159,6 +160,19 @@ class manager_UI(QtWidgets.QWidget):
             config_data[plugin_name]['order'] = i
             i += 1
 
+    def order_plugin_list_from_config(self, config_data):
+        # get the order from the config_data
+        order_dict = {plugin_name: config_data[plugin_name]['order'] for plugin_name in config_data.keys()}
+        # get items from list widget
+        items = [self.plugin_list_widget.item(x) for x in range(self.plugin_list_widget.count())]
+        # sort items by order
+        items_sorted = sorted(items, key=lambda x: order_dict[x.text()])
+        # remove all items from list widget
+        for item in items:
+            self.plugin_list_widget.takeItem(self.plugin_list_widget.row(item))
+        # add items back to list widget
+        for item in items_sorted:
+            self.plugin_list_widget.addItem(item)
 
 
     def pipeline_config_browse_and_load(self):
@@ -189,6 +203,8 @@ class manager_UI(QtWidgets.QWidget):
         # refresh colors
         self.plugin_config_color_attribute_widgets()
         self.pipeline_config_color_plugin_widgets()
+
+        self.order_plugin_list_from_config(self.pipeline_config)
 
         # todo handle case where the discover does not contain plugin but the config does, same with attributes
         # ex discover returns plugin 1 and 2, but config also contains settings for plugin 3
