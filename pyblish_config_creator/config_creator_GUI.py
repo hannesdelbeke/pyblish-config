@@ -137,17 +137,18 @@ class manager_UI(QtWidgets.QWidget):
         # this diff is only needed when doing register_plugin -> discover -> plugins ->config
         # when we edit an alrdy existing config we dont need to do any diffing
         config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
-        config_data = self.bake_plugin_order_from_list_order(config_data)
+        config_data = self.bake_plugin_order_from_list_order()
         config.save_config_as_json(self.json_path_output, config_data)
 
-    def bake_plugin_order_from_list_order(self, config_data):
+    def bake_plugin_order_from_list_order(self, *args):
         """mutate input config_data to bake plugin order from list order"""
         items = [self.plugin_list_widget.item(x) for x in range(self.plugin_list_widget.count())]
         i = 0
         for item in items:
             plugin_name = item.text()
-            config_data[plugin_name]['order'] = i
+            self.pipeline_config[plugin_name]['order'] = i
             i += 1
+        self.plugin_config_color_attribute_widgets()
 
     def order_plugin_list_from_config(self, config_data):
         # get the order from the config_data
