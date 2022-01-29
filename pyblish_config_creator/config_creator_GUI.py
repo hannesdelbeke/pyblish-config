@@ -235,10 +235,10 @@ class manager_UI(QtWidgets.QWidget):
 
             if value_changed:
                 # set color yellow
-                color = QtGui.QColor(255, 200, 100)
+                color = QtGui.QColor(255, 200, 100, 100)
             else:
-                # set color white
-                color = QtGui.QColor(255, 255, 255)
+                # set color transparent
+                color = QtGui.QColor(255, 255, 255, 0)
             item.setBackground(color)
 
 
@@ -701,7 +701,7 @@ class manager_UI(QtWidgets.QWidget):
     @staticmethod
     def _color_widget(widget, value_changed):
         if value_changed:
-            widget.setStyleSheet("background-color: rgb(255, 200, 100);")
+            widget.setStyleSheet("background-color: rgb(255, 200, 100, 100);")
         else:
             widget.setStyleSheet("")
 
