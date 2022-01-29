@@ -6,7 +6,7 @@ from Qt.QtWidgets import QFileDialog
 
 import copy
 
-from pyblish_config import config
+import pyblish_config.config
 from pyblish_config.config import get_pipeline_config_from_plugins
 
 try:
@@ -158,7 +158,7 @@ class manager_UI(QtWidgets.QWidget):
 
         self.bake_plugin_order_from_list_order()
 
-        config.save_config_as_json(self.json_path_output, self.pipeline_config)
+        pyblish_config.config.save_config_as_json(self.json_path_output, self.pipeline_config)
 
         name = Path(self.json_path_output).stem
         self.config_name_widget.setText(name)
@@ -202,18 +202,17 @@ class manager_UI(QtWidgets.QWidget):
         # open config
 
         ## Raw loading of config
-        self.original_pipeline_config = self.pipeline_config = config.load_config_from_json(browsed_path)  # todo verify the loaded config is valid
-
+        config = pyblish_config.config.load_config_from_json(browsed_path)  # todo verify the loaded config is valid
         # run discover again?
 
         # ## additive loading of config
-        # loaded_config = config.load_config_from_json(browsed_path)
+        # loaded_config = pyblish_config.config.load_config_from_json(browsed_path)
         # for plugin_name, plugin_config in loaded_config.items():
         #     for attr_name, value in plugin_config.items():
         #         self.pipeline_config.setdefault(plugin_name, {})
         #         self.pipeline_config[plugin_name][attr_name] = value
 
-        self.pipeline_config_refresh()
+        self.pipeline_config_load(config)
 
         filename = Path(browsed_path).stem
         self.config_name_widget.setText(filename)
