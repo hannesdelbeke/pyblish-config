@@ -752,44 +752,6 @@ def make_config(discover=True, config=None):
     if app:
         app.exec_()
 
-
-    if True:
-        # app = QtWidgets.QApplication(sys.argv)
-
-        m = QtWidgets.QWidget()
-        # m.load_config(config)
-        # m.setWindowTitle('pyblish pipeline manager')
-        # m.display_config(config)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout_buttons = QtWidgets.QHBoxLayout()
-        layout_buttons.addWidget(QtWidgets.QLabel('test'))
-        layout_buttons.addWidget(QtWidgets.QLabel('test'))
-
-        path_widget = QtWidgets.QWidget()
-        path_layout = QtWidgets.QVBoxLayout()
-        path_widget.setLayout(path_layout)
-        path_scroll_widget = wrap_widget_in_scroll_area(m, path_widget)
-
-        layout.addLayout(layout_buttons)
-        layout.addWidget(path_scroll_widget)
-        m.setLayout(layout)
-
-        pyblish.api.register_plugin_path('c:/test')
-        for x in pyblish.api.registered_paths():
-            layout_buttons = QtWidgets.QHBoxLayout()
-            remove_path_button_widget = QtWidgets.QPushButton('-')
-            remove_path_button_widget.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-            layout_buttons.addWidget(remove_path_button_widget)
-            layout_buttons.addWidget(QtWidgets.QLabel(x))
-            path_layout.addLayout(layout_buttons)
-
-
-
-        m.show()
-        if qapp:
-            app.exec_()
-
     return m
 
 # ideally all this make config stuff happens using default settings.
