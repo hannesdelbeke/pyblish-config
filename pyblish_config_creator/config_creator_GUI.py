@@ -59,7 +59,16 @@ class manager_UI(QtWidgets.QWidget):
 
         self.setLayout(self.hbox_main_layout)
 
+        self.order_plugin_list_from_config(self.pipeline_config)
+
     # pipeline config
+
+    def _del_item(self):
+        for item in self.plugin_list_widget.selectedItems():
+            # delete item from list
+            self.plugin_list_widget.takeItem(self.plugin_list_widget.row(item))
+            # delete from config
+            self.pipeline_config.pop(item.text())
 
     def pipeline_config_create_plugin_list(self):
 
@@ -72,6 +81,15 @@ class manager_UI(QtWidgets.QWidget):
         self.plugin_list_widget.setDropIndicatorShown(True)
         self.plugin_list_widget.setAcceptDrops(True)
         self.plugin_list_widget.setDragDropOverwriteMode(False)
+
+        def keyPressEvent(event):
+            if event.key() == QtCore.Qt.Key_Delete:
+                self._del_item()
+
+
+
+        self.plugin_list_widget.keyPressEvent = keyPressEvent
+        self.plugin_list_widget._del_item = lambda: self._del_item
 
         self.vbox_config_layout = QtWidgets.QVBoxLayout(self)  # this needs to happen before scrollarea
         # create widget, apply layout, add widgets to layout.
@@ -136,9 +154,14 @@ class manager_UI(QtWidgets.QWidget):
         #  this wont work if we edit an already different config
         # this diff is only needed when doing register_plugin -> discover -> plugins ->config
         # when we edit an alrdy existing config we dont need to do any diffing
-        config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
-        config_data = self.bake_plugin_order_from_list_order()
-        config.save_config_as_json(self.json_path_output, config_data)
+        # config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
+
+        self.bake_plugin_order_from_list_order()
+
+        config.save_config_as_json(self.json_path_output, self.pipeline_config)
+
+        name = Path(self.json_path_output).stem
+        self.config_name_widget.setText(name)
 
     def bake_plugin_order_from_list_order(self, *args):
         """mutate input config_data to bake plugin order from list order"""
@@ -179,22 +202,25 @@ class manager_UI(QtWidgets.QWidget):
         # open config
 
         ## Raw loading of config
-        # self.pipeline_config = config.load_config(browsed_path)  # todo verify the loaded config is valid
+        self.original_pipeline_config = self.pipeline_config = config.load_config_from_json(browsed_path)  # todo verify the loaded config is valid
 
-        ## additive loading of config
-        loaded_config = config.load_config_from_json(browsed_path)
-        for plugin_name, plugin_config in loaded_config.items():
-            for attr_name, value in plugin_config.items():
-                self.pipeline_config[plugin_name][attr_name] = value
+        # run discover again?
+
+        # ## additive loading of config
+        # loaded_config = config.load_config_from_json(browsed_path)
+        # for plugin_name, plugin_config in loaded_config.items():
+        #     for attr_name, value in plugin_config.items():
+        #         self.pipeline_config.setdefault(plugin_name, {})
+        #         self.pipeline_config[plugin_name][attr_name] = value
+
+        self.pipeline_config_refresh()
 
         filename = Path(browsed_path).stem
         self.config_name_widget.setText(filename)
 
         # refresh colors
-        self.plugin_config_color_attribute_widgets()
-        self.pipeline_config_color_plugin_widgets()
-
-        self.order_plugin_list_from_config(self.pipeline_config)
+        # self.plugin_config_color_attribute_widgets()
+        # self.pipeline_config_color_plugin_widgets()
 
         # todo handle case where the discover does not contain plugin but the config does, same with attributes
         # ex discover returns plugin 1 and 2, but config also contains settings for plugin 3
@@ -203,6 +229,7 @@ class manager_UI(QtWidgets.QWidget):
     def pipeline_config_refresh(self):
         self.plugin_list_widget.clear()
         self.pipeline_config_plugin_buttons_create_widget()
+        self.order_plugin_list_from_config(self.pipeline_config)
 
     def pipeline_config_load(self, pipeline_config):
         self.original_pipeline_config = copy.deepcopy(pipeline_config)
@@ -215,9 +242,6 @@ class manager_UI(QtWidgets.QWidget):
         self.plugin_config_show_first()
 
     def pipeline_config_color_plugin_widgets(self):
-        pass
-        # for plugin_widget in self.widgets_plugin_buttons:
-
         items = [self.plugin_list_widget.item(x) for x in range(self.plugin_list_widget.count())]
 
         for item in items:
