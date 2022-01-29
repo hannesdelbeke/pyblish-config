@@ -130,5 +130,5 @@ def get_plugin_config(plugin):
             if hasattr(value, '__call__'):  # skip functions
                 continue
             plugin_config[attr] = value
-    # plugin_config['__doc__'] = plugin.__doc__
+    plugin_config['__doc__'] = plugin.__doc__
     return plugin_config
