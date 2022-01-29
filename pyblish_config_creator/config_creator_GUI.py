@@ -17,20 +17,6 @@ except:
 SUPPORTED_TYPES = [int, float, str, bool, list, dict, tuple, type(None), ]
 
 
-def wrap_widget_in_scroll_area(parent, widget):
-    """
-    wrap a widget in a scroll area
-    :param widget: widget to be wrapped
-    :return: scroll area containing the widget
-    """
-    scroll = QtWidgets.QScrollArea(parent)
-    scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-    scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-    scroll.setWidgetResizable(True)
-    scroll.setWidget(widget)
-
-    return scroll
-
 class plugin_widget(object):
     def __init__(self, pyblish_plugin, widget):
         # object.__init__(self)
@@ -331,12 +317,25 @@ class manager_UI(QtWidgets.QWidget):
         #     doc_string = doc_string[1:]
         if doc_string == 'None':
             doc_string = ''
-        self.widget_plugin_doc = QtWidgets.QLabel(doc_string)
 
-        doc_scroll_widget = wrap_widget_in_scroll_area(self, self.widget_plugin_doc)
-        doc_scroll_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        doc_scroll_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        doc_scroll_widget.setMaximumHeight(80)
+        # create scrollable text widget
+        doc_widget = QtWidgets.QTextEdit()
+        doc_widget.setReadOnly(True)
+        doc_widget.setText(doc_string)
+        doc_widget.setStyleSheet("font-size: 11px;")
+        doc_widget.setFixedHeight(100)
+        # set overflow to flase to allow scrolling
+        # add horizon scroll to true
+        doc_widget.setLineWrapMode(QtWidgets.QTextEdit.LineWrapMode.NoWrap)
+        doc_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        doc_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+
+        # self.widget_plugin_doc = QtWidgets.QLabel(doc_string)
+
+        # doc_scroll_widget = wrap_widget_in_scroll_area(self, self.widget_plugin_doc)
+        # doc_scroll_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        # doc_scroll_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        # doc_scroll_widget.setMaximumHeight(80)
 
         # create checkbox hide pyblish attributes
         self.hide_pyblish_attributes_widget = QtWidgets.QCheckBox("Hide Pyblish attributes")
@@ -420,7 +419,7 @@ class manager_UI(QtWidgets.QWidget):
 
         # add title, doc, and scroll widgets to main container
         plugin_config_main_layout.addWidget(widget_plugin_config_title)
-        plugin_config_main_layout.addWidget(doc_scroll_widget)
+        plugin_config_main_layout.addWidget(doc_widget)
         plugin_config_main_layout.addWidget(self.attr_widgets_table)
         plugin_config_main_layout.addWidget(self.hide_pyblish_attributes_widget)
 
