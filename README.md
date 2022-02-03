@@ -1,5 +1,7 @@
 # pyblish-plugin-manager
 
+![screenshot](sample/managager_screenshot.JPG)
+
 the plugin manager allows you to override pyblish plugin settings externally. The aim is to assist with pipeline configuration and promote sharing and reusing plugins.
 
 ## overwriting attributes
