@@ -1,6 +1,6 @@
 from pyblish import api
 import json
-
+import io
 
 # does register_config imply we can have multiple filters?
 # let's name it register because the filter only applies after discover has run.
@@ -75,8 +75,19 @@ def register_pipeline_config_filter(config_path=None, config_dict=None):
 
 def save_config_as_json(path, config_data):
     """save a config to a json. can be used on both pipeline and plugin configs"""
-    with open(path, 'w', encoding='utf-8') as f:
-        json.dump(config_data, f, indent=4)
+    with io.open(path, 'w', encoding='utf-8') as outfile:
+        try:
+            # python 2
+            my_json_str = json.dumps(config_data, ensure_ascii=False, indent=4)
+            if isinstance(my_json_str, str):
+                my_json_str = my_json_str.decode("utf-8")
+            outfile.write(my_json_str)
+
+        except:
+            # python 3
+            json.dump(config_data, outfile, indent=4)
+
+
 
 
 def load_config_from_json(config_path):
