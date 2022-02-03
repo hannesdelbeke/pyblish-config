@@ -126,6 +126,18 @@ def get_pipeline_config_from_plugins(plugins):
 
     return pipeline_config
 
+def type_is_supported(value):
+    if hasattr(value, '__call__'):  # skip functions
+        return
+    if isinstance(value, type):  # skip classes
+        return
+
+    if isinstance(value, (list, tuple)) and len(value) > 0:
+        value2 = value[0]
+        return type_is_supported(value2)
+
+    return True
+
 
 def get_plugin_config(plugin):
     """
@@ -138,8 +150,11 @@ def get_plugin_config(plugin):
     for attr in dir(plugin):
         if not attr.startswith('_') and attr not in ('id', 'log'):  # skip private, skip id & log, you should never change these
             value = getattr(plugin, attr)
-            if hasattr(value, '__call__'):  # skip functions
+
+            if not type_is_supported(value):
                 continue
+
+
             plugin_config[attr] = value
     plugin_config['__doc__'] = plugin.__doc__
     return plugin_config

@@ -91,6 +91,11 @@ class manager_UI(QtWidgets.QWidget):
         self.plugin_list_widget.keyPressEvent = keyPressEvent
         self.plugin_list_widget._del_item = lambda: self._del_item
 
+        # todo conenct drag and drop
+        # self.plugin_list_widget.currentRowChanged.connect(self.bake_plugin_order_from_list_order)
+
+
+
         self.vbox_config_layout = QtWidgets.QVBoxLayout(self)  # this needs to happen before scrollarea
         # create widget, apply layout, add widgets to layout.
 
@@ -105,6 +110,10 @@ class manager_UI(QtWidgets.QWidget):
         self.load_config_button.clicked.connect(self.pipeline_config_browse_and_load)
         self.save_config_button.clicked.connect(self.pipeline_config_browse_and_save)
 
+        self.discover_button = QtWidgets.QPushButton('discover (resets !!!)')
+        self.discover_button.clicked.connect(self.discover)
+        # self.discover_button.setMaximumWidth(50)
+
         self.config_button_layout = QtWidgets.QHBoxLayout()
         # self.config_button_layout.addWidget(self.register_plugins_button)
         self.config_button_layout.addWidget(self.load_config_button)
@@ -117,7 +126,6 @@ class manager_UI(QtWidgets.QWidget):
         label = QtWidgets.QLabel('pipeline:')
         # self.vbox_config_layout.addWidget(dropdown)
         # self.vbox_config_layout.addWidget(widget_scroll)
-        self.vbox_config_layout.addWidget(self.plugin_list_widget)
         # text fill box
         self.config_name_widget = QtWidgets.QTextEdit()
         self.config_name_widget.setFixedHeight(20)
@@ -127,11 +135,21 @@ class manager_UI(QtWidgets.QWidget):
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(label)
         layout.addWidget(self.config_name_widget)
-        self.vbox_config_layout.addLayout(layout)
 
+        self.vbox_config_layout.addWidget(self.discover_button)
+        self.vbox_config_layout.addWidget(self.plugin_list_widget)
+        self.vbox_config_layout.addLayout(layout)
         self.vbox_config_layout.addLayout(self.config_button_layout)
 
         return widget
+
+    def discover(self):
+        plugins = pyblish.api.discover()
+        config = get_pipeline_config_from_plugins(plugins)
+        for x in config:
+            for y in x:
+                print(x, y)
+        self.pipeline_config_load(config)
 
 
     def pipeline_config_plugin_buttons_create_widget(self):
