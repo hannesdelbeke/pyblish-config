@@ -48,7 +48,7 @@ def register_pipeline_config_filter(config_path=None, config_dict=None):
     def config_filter_callback(plugins):
 
         # raise error when an expected plugin is not found
-        plugin_names = [p.data['name'] for p in plugins]
+        plugin_names = [plugin.__name__ for plugin in plugins]
         for plugin_name in config_dict:
             if plugin_name not in plugin_names:
                 raise Exception("plugin not found in pipeline: " + plugin_name)
