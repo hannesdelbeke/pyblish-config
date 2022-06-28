@@ -23,6 +23,20 @@ import io
 # when it just says config this likely is pipeline config
 
 
+class Config(dict):
+    def dump(config, path):  # save_config_as_json
+        """save a config to a json. can be used on both pipeline and plugin configs"""
+        with io.open(path, 'w', encoding='utf-8') as outfile:
+            try:
+                # python 2
+                my_json_str = json.dumps(config, ensure_ascii=False, indent=4)
+                if isinstance(my_json_str, str):
+                    my_json_str = my_json_str.decode("utf-8")
+                outfile.write(my_json_str)
+
+            except:
+                # python 3
+                json.dump(config, outfile, indent=4)
 def iter_default_plugin_attrs():
     """ filter default pyblish attributes """
     for x in vars(pyblish.plugin.Plugin):
@@ -130,20 +144,6 @@ def register_pipeline_config_filter(config_path=None, config_dict=None):
 #     plugins = api.discover()
 #     return plugins
 
-
-def save_config_as_json(path, config_data):
-    """save a config to a json. can be used on both pipeline and plugin configs"""
-    with io.open(path, 'w', encoding='utf-8') as outfile:
-        try:
-            # python 2
-            my_json_str = json.dumps(config_data, ensure_ascii=False, indent=4)
-            if isinstance(my_json_str, str):
-                my_json_str = my_json_str.decode("utf-8")
-            outfile.write(my_json_str)
-
-        except:
-            # python 3
-            json.dump(config_data, outfile, indent=4)
 
 
 
