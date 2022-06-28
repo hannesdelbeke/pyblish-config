@@ -76,7 +76,7 @@ def filter_attrs(config, attributes):
 
 
 def filter_empty_plugins(config):
-    return {key:value for key, value in config if value}
+    return {key:value for (key, value) in config.items() if value}
 
 
 
