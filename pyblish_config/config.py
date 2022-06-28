@@ -32,6 +32,14 @@ class Config(dict):
             for attr_name, attr_value in plugin_config.items():
                 if attr_name in default_attrs:
                     plugin_config.pop(attr_name)
+
+    def filter_attributes(config, attributes):  # filter_attrs
+        """ filter out custom attributes. """
+        for plugin_name, plugin_config in config.items():
+            for attr_name, attr_value in plugin_config.items():
+                if attr_name in attributes:
+                    plugin_config.pop(attr_name)
+
     def filter_private_attributes(config):
         """ filter out custom attributes. """
         for plugin_name, plugin_config in config.items():
@@ -57,6 +65,8 @@ class Config(dict):
             except:
                 # python 3
                 json.dump(config, outfile, indent=4)
+
+
 def iter_default_plugin_attrs():
     """ filter default pyblish attributes """
     for x in vars(pyblish.plugin.Plugin):
@@ -78,22 +88,6 @@ def iter_non_default_plugin_attrs(plugin):
         if x in default_attrs:
             continue
         yield(x)
-
-
-
-def filter_attrs(config, attributes):
-    """
-    filter out custom attributes.
-    """
-    config_data = {}
-    for plugin_name, plugin_config in config.items():
-        config_data[plugin_name] = {}
-        for attr_name, attr_value in plugin_config.items():
-            if attr_name in attributes:
-                continue
-            config_data[plugin_name][attr_name] = attr_value
-    return config_data
-
 
 
 def register_pipeline_config_filter(config_path=None, config_dict=None):
