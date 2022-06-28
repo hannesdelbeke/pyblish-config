@@ -23,7 +23,7 @@ import io
 # when it just says config this likely is pipeline config
 
 
-class Config(dict):
+class PipelineConfig(dict):
     # TODO doesnt yet support methods like deepcopy, returns dict instead of Config.
 
     def filter_default_attributes(config):  # filter_default_attrs
@@ -138,7 +138,7 @@ def register_pipeline_config_filter(config_path=None, config_dict=None):
     # default_settings (ex all enabled/disabled ....)
     # any plugins not in pipeline, should they be included or exluded
 
-    Config(config_dict).register()
+    PipelineConfig(config_dict).register()
 
 
 # def apply_config(config_path=None, config_dict=None):
@@ -147,14 +147,11 @@ def register_pipeline_config_filter(config_path=None, config_dict=None):
 #     return plugins
 
 
-
-
-
 def load_config_from_json(config_path):
     """load a config from a json. can be used on both pipeline and plugin configs"""
     f = open(config_path)
     config_dict = json.load(f)
-    return Config(config_dict)
+    return PipelineConfig(config_dict)
 
 
 def diff_pipeline_configs(config_new, config_original):
@@ -184,7 +181,7 @@ def get_pipeline_config_from_plugins(plugins):
     for plugin in plugins:
         pipeline_config[plugin.__name__] = get_plugin_config(plugin)
 
-    return pipeline_config
+    return PipelineConfig(pipeline_config)
 
 
 def type_is_supported(value):
@@ -214,7 +211,6 @@ def get_plugin_config(plugin):
 
             if not type_is_supported(value):
                 continue
-
 
             plugin_config[attr] = value
     plugin_config['__doc__'] = plugin.__doc__
