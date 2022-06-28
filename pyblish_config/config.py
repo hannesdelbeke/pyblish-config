@@ -30,26 +30,27 @@ class PipelineConfig(dict):
         """ filter out default pyblihs plugin attributes. example: families, id, ... """
         default_attrs = [x for x in iter_default_plugin_attrs()]
         for plugin_name, plugin_config in config.items():
-            for attr_name, attr_value in plugin_config.items():
+            for attr_name in list(plugin_config.keys()):
                 if attr_name in default_attrs:
                     plugin_config.pop(attr_name)
 
     def filter_attributes(config, attributes):  # filter_attrs
         """ filter out custom attributes. """
         for plugin_name, plugin_config in config.items():
-            for attr_name, attr_value in plugin_config.items():
+            for attr_name in list(plugin_config.keys()):
                 if attr_name in attributes:
                     plugin_config.pop(attr_name)
 
     def filter_private_attributes(config):
         """ filter out custom attributes. """
         for plugin_name, plugin_config in config.items():
-            for attr_name, attr_value in plugin_config.items():
+            for attr_name in list(plugin_config.keys()):
                 if attr_name.startswith('_'):
                     plugin_config.pop(attr_name)
 
     def filter_empty_plugins(config):  # filter_empty_plugins
-        for (plugin_name, plugin_config) in config.items():
+        for plugin_name in list(config.keys()):
+            plugin_config = config[plugin_name]
             if not plugin_config:
                 config.pop(plugin_name)
 
