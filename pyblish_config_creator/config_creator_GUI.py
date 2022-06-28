@@ -179,7 +179,7 @@ class manager_UI(QtWidgets.QWidget):
 
         # config_data = self.pipeline_config
 
-        pyblish_config.config.save_config_as_json(self.json_path_output, config_data)
+        pyblish_config.config.dump(self.json_path_output, config_data)
 
         name = Path(self.json_path_output).stem
         self.config_name_widget.setText(name)
