@@ -24,6 +24,7 @@ import io
 
 
 class Config(dict):
+    # TODO doesnt yet support methods like deepcopy, returns dict instead of Config.
 
     def filter_default_attributes(config):  # filter_default_attrs
         """ filter out default pyblihs plugin attributes. example: families, id, ... """
@@ -48,9 +49,9 @@ class Config(dict):
                     plugin_config.pop(attr_name)
 
     def filter_empty_plugins(config):  # filter_empty_plugins
-        for (key, value) in config.items():
-            if not value:
-                config.pop(key)
+        for (plugin_name, plugin_config) in config.items():
+            if not plugin_config:
+                config.pop(plugin_name)
 
     def dump(config, path):  # save_config_as_json
         """save a config to a json. can be used on both pipeline and plugin configs"""
@@ -80,12 +81,12 @@ class Config(dict):
             for plugin in plugins[:]:
                 plugin_config = config.get(plugin.__name__, {})  # plugins with same name might clash
 
-                for key, value in plugin_config.items():
+                for attr_name, value in plugin_config.items():
                     # TODO  differentiate between input classes (action, plugin...) and raw input int,str...
                     # custom load if value starts with #action| or #plugin|. ex: #action|modulename.action_name
 
                     # aply settings to plugins
-                    setattr(plugin, key, value)
+                    setattr(plugin, attr_name, value)
 
         api.register_discovery_filter(config_filter_callback)
 
