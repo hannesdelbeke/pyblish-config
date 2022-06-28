@@ -66,6 +66,29 @@ class Config(dict):
                 # python 3
                 json.dump(config, outfile, indent=4)
 
+    def register(config):
+
+        def config_filter_callback(plugins):
+
+            # raise error when an expected plugin is not found
+            plugin_names = [plugin.__name__ for plugin in plugins]
+            for plugin_name in config:
+                if plugin_name not in plugin_names:
+                    raise Exception("plugin not found in pipeline: " + plugin_name)
+
+            # get settings per plugin
+            for plugin in plugins[:]:
+                plugin_config = config.get(plugin.__name__, {})  # plugins with same name might clash
+
+                for key, value in plugin_config.items():
+                    # TODO  differentiate between input classes (action, plugin...) and raw input int,str...
+                    # custom load if value starts with #action| or #plugin|. ex: #action|modulename.action_name
+
+                    # aply settings to plugins
+                    setattr(plugin, key, value)
+
+        api.register_discovery_filter(config_filter_callback)
+
 
 def iter_default_plugin_attrs():
     """ filter default pyblish attributes """
@@ -90,6 +113,7 @@ def iter_non_default_plugin_attrs(plugin):
         yield(x)
 
 
+# TODO remove this convenience function
 def register_pipeline_config_filter(config_path=None, config_dict=None):
     """
     register a plugin settings filter from a settings file,
@@ -113,26 +137,7 @@ def register_pipeline_config_filter(config_path=None, config_dict=None):
     # default_settings (ex all enabled/disabled ....)
     # any plugins not in pipeline, should they be included or exluded
 
-    def config_filter_callback(plugins):
-
-        # raise error when an expected plugin is not found
-        plugin_names = [plugin.__name__ for plugin in plugins]
-        for plugin_name in config_dict:
-            if plugin_name not in plugin_names:
-                raise Exception("plugin not found in pipeline: " + plugin_name)
-
-        # get settings per plugin
-        for plugin in plugins[:]:
-            plugin_config = config_dict.get(plugin.__name__, {})  # plugins with same name might clash
-
-            for key, value in plugin_config.items():
-                # TODO  differentiate between input classes (action, plugin...) and raw input int,str...
-                # custom load if value starts with #action| or #plugin|. ex: #action|modulename.action_name
-
-                # aply settings to plugins
-                setattr(plugin, key, value)
-
-    api.register_discovery_filter(config_filter_callback)
+    Config(config_dict).register()
 
 
 # def apply_config(config_path=None, config_dict=None):
