@@ -4,5 +4,5 @@ from pyblish_config import config
 config_path = r'C:\my_config.json'
 c = config.load_config_from_json(config_path)
 c = config.filter_attrs(c, attributes=['url'])
-c = config.filter_empty_plugins(c)
+config.filter_empty_plugins()
 config.save_config_as_json(path=config_path)

@@ -24,6 +24,11 @@ import io
 
 
 class Config(dict):
+    def filter_empty_plugins(config):  # filter_empty_plugins
+        for (key, value) in config.items():
+            if not value:
+                config.pop(key)
+
     def dump(config, path):  # save_config_as_json
         """save a config to a json. can be used on both pipeline and plugin configs"""
         with io.open(path, 'w', encoding='utf-8') as outfile:
@@ -87,10 +92,6 @@ def filter_attrs(config, attributes):
                 continue
             config_data[plugin_name][attr_name] = attr_value
     return config_data
-
-
-def filter_empty_plugins(config):
-    return {key:value for (key, value) in config.items() if value}
 
 
 
