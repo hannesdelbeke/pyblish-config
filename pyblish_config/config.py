@@ -1,4 +1,5 @@
 from pyblish import api
+import pyblish.plugin
 import json
 import io
 
@@ -20,6 +21,63 @@ import io
 # since we use names you cant have 2 plugins  with the same name
 
 # when it just says config this likely is pipeline config
+
+
+def iter_default_plugin_attrs():
+    """ filter default pyblish attributes """
+    for x in vars(pyblish.plugin.Plugin):
+        if x.startswith('_'):
+            continue
+        if x in ('repair', 'process'):
+            continue
+        yield(x)
+
+
+def iter_non_default_plugin_attrs(plugin):
+    """ get non default pyblish attributes """
+    default_attrs = list(iter_default_plugin_attrs())
+    for x in vars(pyblish.plugin.Plugin):
+        if x.startswith('_'):
+            continue
+        if x in ('repair', 'process'):
+            continue
+        if x in default_attrs:
+            continue
+        yield(x)
+
+
+def filter_default_attrs(config):
+    """
+    filter out default pyblihs plugin attributes. example: families, id, ...
+    """
+    default_attrs = [x for x in iter_default_plugin_attrs()]
+    config_data = {}
+    for plugin_name, plugin_config in config.items():
+        config_data[plugin_name] = {}
+        for attr_name, attr_value in plugin_config.items():
+            if attr_name in default_attrs or attr_name.startswith('_'):
+                continue
+            config_data[plugin_name][attr_name] = attr_value
+    return config_data
+
+
+def filter_attrs(config, attributes):
+    """
+    filter out custom attributes.
+    """
+    config_data = {}
+    for plugin_name, plugin_config in config.items():
+        config_data[plugin_name] = {}
+        for attr_name, attr_value in plugin_config.items():
+            if attr_name in attributes:
+                continue
+            config_data[plugin_name][attr_name] = attr_value
+    return config_data
+
+
+def filter_empty_plugins(config):
+    return {key:value for key, value in config if value}
+
 
 
 def register_pipeline_config_filter(config_path=None, config_dict=None):
@@ -125,6 +183,7 @@ def get_pipeline_config_from_plugins(plugins):
         pipeline_config[plugin.__name__] = get_plugin_config(plugin)
 
     return pipeline_config
+
 
 def type_is_supported(value):
     if hasattr(value, '__call__'):  # skip functions

@@ -41,8 +41,6 @@ class manager_UI(QtWidgets.QWidget):
 
         # self.widgets_plugin_buttons = []
         self.widget_plugins_list = self.pipeline_config_create_plugin_list()   # the scroll list that contains the plugin buttons
-        self.widget_plugins_list.setMinimumWidth(200)
-        self.widget_plugins_list.setMaximumWidth(200)
         # create plugin settings widget
         # self.widget_plugin_config_container_main = self.create_right()  # sets up more self. variables inside method
 
@@ -172,11 +170,16 @@ class manager_UI(QtWidgets.QWidget):
         #  this wont work if we edit an already different config
         # this diff is only needed when doing register_plugin -> discover -> plugins ->config
         # when we edit an alrdy existing config we dont need to do any diffing
-        # config_data = config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
+        # config_data = pyblish_config.config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
+        config_data = pyblish_config.config.filter_default_attrs(self.pipeline_config)
 
-        self.bake_plugin_order_from_list_order()
+        # TODO make this compatible with collect, validate, extract, integrate phases.
+        #  right now bake order breaks this resulting in issues in QML etc
+        # self.bake_plugin_order_from_list_order()
 
-        pyblish_config.config.save_config_as_json(self.json_path_output, self.pipeline_config)
+        # config_data = self.pipeline_config
+
+        pyblish_config.config.save_config_as_json(self.json_path_output, config_data)
 
         name = Path(self.json_path_output).stem
         self.config_name_widget.setText(name)
