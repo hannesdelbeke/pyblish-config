@@ -24,6 +24,13 @@ import io
 
 
 class Config(dict):
+    def filter_private_attributes(config):
+        """ filter out custom attributes. """
+        for plugin_name, plugin_config in config.items():
+            for attr_name, attr_value in plugin_config.items():
+                if attr_name.startswith('_'):
+                    plugin_config.pop(attr_name)
+
     def filter_empty_plugins(config):  # filter_empty_plugins
         for (key, value) in config.items():
             if not value:
