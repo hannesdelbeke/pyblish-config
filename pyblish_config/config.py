@@ -153,7 +153,7 @@ def load_config_from_json(config_path):
     """load a config from a json. can be used on both pipeline and plugin configs"""
     f = open(config_path)
     config_dict = json.load(f)
-    return config_dict
+    return Config(config_dict)
 
 
 def diff_pipeline_configs(config_new, config_original):
