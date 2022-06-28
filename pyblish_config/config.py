@@ -24,6 +24,14 @@ import io
 
 
 class Config(dict):
+
+    def filter_default_attributes(config):  # filter_default_attrs
+        """ filter out default pyblihs plugin attributes. example: families, id, ... """
+        default_attrs = [x for x in iter_default_plugin_attrs()]
+        for plugin_name, plugin_config in config.items():
+            for attr_name, attr_value in plugin_config.items():
+                if attr_name in default_attrs:
+                    plugin_config.pop(attr_name)
     def filter_private_attributes(config):
         """ filter out custom attributes. """
         for plugin_name, plugin_config in config.items():
@@ -71,20 +79,6 @@ def iter_non_default_plugin_attrs(plugin):
             continue
         yield(x)
 
-
-def filter_default_attrs(config):
-    """
-    filter out default pyblihs plugin attributes. example: families, id, ...
-    """
-    default_attrs = [x for x in iter_default_plugin_attrs()]
-    config_data = {}
-    for plugin_name, plugin_config in config.items():
-        config_data[plugin_name] = {}
-        for attr_name, attr_value in plugin_config.items():
-            if attr_name in default_attrs or attr_name.startswith('_'):
-                continue
-            config_data[plugin_name][attr_name] = attr_value
-    return config_data
 
 
 def filter_attrs(config, attributes):

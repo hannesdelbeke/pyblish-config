@@ -171,7 +171,7 @@ class manager_UI(QtWidgets.QWidget):
         # this diff is only needed when doing register_plugin -> discover -> plugins ->config
         # when we edit an alrdy existing config we dont need to do any diffing
         # config_data = pyblish_config.config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
-        config_data = pyblish_config.config.filter_default_attrs(self.pipeline_config)
+        config_data = pyblish_config.config.filter_default_attributes(self.pipeline_config)
 
         # TODO make this compatible with collect, validate, extract, integrate phases.
         #  right now bake order breaks this resulting in issues in QML etc
