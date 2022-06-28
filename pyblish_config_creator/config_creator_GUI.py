@@ -7,7 +7,7 @@ from Qt.QtWidgets import QFileDialog
 import copy
 
 import pyblish_config.config
-from pyblish_config.config import get_pipeline_config_from_plugins
+from pyblish_config.config import get_pipeline_config_from_plugins, PipelineConfig
 
 try:
     from pathlib import Path
@@ -171,7 +171,7 @@ class manager_UI(QtWidgets.QWidget):
         # this diff is only needed when doing register_plugin -> discover -> plugins ->config
         # when we edit an alrdy existing config we dont need to do any diffing
         # config_data = pyblish_config.config.diff_pipeline_configs(self.pipeline_config, self.original_pipeline_config)
-        config_data = pyblish_config.config.filter_default_attributes(self.pipeline_config)
+        config_data = PipelineConfig(self.pipeline_config).filter_default_attributes()
 
         # TODO make this compatible with collect, validate, extract, integrate phases.
         #  right now bake order breaks this resulting in issues in QML etc
@@ -179,7 +179,7 @@ class manager_UI(QtWidgets.QWidget):
 
         # config_data = self.pipeline_config
 
-        pyblish_config.config.dump(self.json_path_output, config_data)
+        PipelineConfig(config_data).dump(self.json_path_output)
 
         name = Path(self.json_path_output).stem
         self.config_name_widget.setText(name)
