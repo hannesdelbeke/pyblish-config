@@ -1,7 +1,6 @@
-# register plugins
-# apply config to overwrite which plugins are loaded
-# and overwrite plugin settings
-
+# 1. register pyblish plugins
+# 2. apply config to overwrite plugin settings & which plugins are loaded
+# 3. run publish UI & commands like usual
 
 from pyblish import api
 from pyblish_config.config import register_pipeline_config_filter
@@ -36,5 +35,6 @@ plugins = api.discover()
 # we do not include discover in register config because the pyblish GUI runs discover
 
 # -------- debug print --------
+# print plugin settings after config applied
 for p in plugins:
     print(p.__name__, p.optional)
