@@ -27,7 +27,7 @@ class PipelineConfig(dict):
     # TODO doesnt yet support methods like deepcopy, returns dict instead of Config.
 
     def filter_default_attributes(config):  # filter_default_attrs
-        """ filter out default pyblihs plugin attributes. example: families, id, ... """
+        """ filter out default pyblish plugin attributes. example: families, id, ... """
         default_attrs = [x for x in iter_default_plugin_attrs()]
         for plugin_name, plugin_config in config.items():
             for attr_name in list(plugin_config.keys()):
