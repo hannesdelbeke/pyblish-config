@@ -105,10 +105,8 @@ def iter_default_plugin_attrs():
 def iter_non_default_plugin_attrs(plugin):
     """ get non default pyblish attributes """
     default_attrs = list(iter_default_plugin_attrs())
-    for x in vars(pyblish.plugin.Plugin):
+    for x in vars(plugin):
         if x.startswith('_'):
-            continue
-        if x in ('repair', 'process'):
             continue
         if x in default_attrs:
             continue
