@@ -165,7 +165,7 @@ def diff_pipeline_configs(config_new, config_original):
                     continue
 
                 config_data[k][k2] = v2
-    return config_data
+    return PipelineConfig(config_data)
 
 
 def get_pipeline_config_from_plugins(plugins):
