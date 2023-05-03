@@ -86,7 +86,7 @@ class PipelineConfig(dict):
                     # TODO  differentiate between input classes (action, plugin...) and raw input int,str...
                     # custom load if value starts with #action| or #plugin|. ex: #action|modulename.action_name
 
-                    # aply settings to plugins
+                    # apply settings to plugins
                     setattr(plugin, attr_name, value)
 
         api.register_discovery_filter(config_filter_callback)
