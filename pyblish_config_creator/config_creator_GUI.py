@@ -784,8 +784,10 @@ def make_config(discover=True, config=None):
         config = get_pipeline_config_from_plugins(plugins)
 
     app = QtWidgets.QApplication.instance()
+    new_app = False
     if app is None:
         app = QtWidgets.QApplication(sys.argv)
+        new_app = True
 
     m = manager_UI()
     m.pipeline_config_load(config)
@@ -794,7 +796,7 @@ def make_config(discover=True, config=None):
 
     m.show()
 
-    if app:
+    if new_app:
         app.exec_()
 
     return m
