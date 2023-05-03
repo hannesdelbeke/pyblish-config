@@ -180,7 +180,7 @@ class manager_UI(QtWidgets.QWidget):
 
         # config_data = self.pipeline_config
 
-        PipelineConfig(config_data).dump(self.json_path_output)
+        config_data.dump(self.json_path_output)
 
         name = Path(self.json_path_output).stem
         self.config_name_widget.setText(name)
