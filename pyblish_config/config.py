@@ -92,12 +92,11 @@ class PipelineConfig(dict):
         api.register_discovery_filter(config_filter_callback)
 
 
-def iter_default_plugin_attrs():
+def iter_default_plugin_attrs(private=False):
     """ filter default pyblish attributes """
-    for x in vars(pyblish.plugin.Plugin):
-        if x.startswith('_'):
-            continue
-        if x in ('repair', 'process'):
+    variables = vars(pyblish.plugin.Plugin)
+    for x in variables:
+        if not private and x.startswith('_'):
             continue
         yield(x)
 
