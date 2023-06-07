@@ -2,6 +2,8 @@ from pyblish import api
 import pyblish.plugin
 import json
 import io
+import logging
+
 
 # does register_config imply we can have multiple filters?
 # let's name it register because the filter only applies after discover has run.
@@ -80,7 +82,15 @@ class PipelineConfig(dict):
 
             # get settings per plugin
             for plugin in plugins[:]:
-                plugin_config = config.get(plugin.__name__, {})  # plugins with same name might clash
+
+                logging.debug("applying config to plugin: " + plugin.__name__)
+                plugin_config = config.get(plugin.__name__, None)  # plugins with same name might clash
+
+                # skip Pyblish plugins not in the config, this might be unwanted in same cases
+                if plugin_config is None:
+                    logging.debug("disabling plugin not in config: " + plugin.__name__)
+                    plugin.active = False
+                    continue
 
                 for attr_name, value in plugin_config.items():
                     # TODO  differentiate between input classes (action, plugin...) and raw input int,str...
