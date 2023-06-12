@@ -8,7 +8,7 @@ packages = ["pyblish_config"]
 
 
 [project]
-name = "pyblish config"
+name = "pyblish-config"
 authors = [
     {name = "Hannes"},
 ]
