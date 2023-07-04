@@ -1,4 +1,4 @@
-# pyblish-plugin-manager
+# pyblish-config [![PyPI](https://img.shields.io/pypi/v/pyblish-config)](https://pypi.org/project/pyblish-config/) 
 
 ## overwriting attributes
 to make sure your pipeline doesnt break when updating plugins.
