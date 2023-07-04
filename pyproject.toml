@@ -32,5 +32,5 @@ version = "0.0.1"
 #my-script = "my_package.module:function"
 
 [project.urls]
-Homepage = "https://github.com/hannesdelbeke/pyblish-plugin-manager"
-Source = "https://github.com/hannesdelbeke/pyblish-plugin-manager"
+Homepage = "https://github.com/hannesdelbeke/pyblish-config"
+Source = "https://github.com/hannesdelbeke/pyblish-config"
