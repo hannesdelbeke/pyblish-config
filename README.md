@@ -1,9 +1,5 @@
 # pyblish-plugin-manager
 
-![screenshot](sample/managager_screenshot.JPG)
-
-the plugin manager allows you to override pyblish plugin settings externally. The aim is to assist with pipeline configuration and promote sharing and reusing plugins.
-
 ## overwriting attributes
 to make sure your pipeline doesnt break when updating plugins.
 pyblish config only overwrites settings it finds in the settings file
@@ -26,3 +22,6 @@ it will only use plugins matching the plugin names in the settings file
 example:
 you have 5 plugins registered. the settings file has 3 plugins listed.
 only those 3 plugins will be used.
+
+## config creator tool
+See the [config creator](https://github.com/hannesdelbeke/pyblish-config/tree/main/pyblish_config_creator), a little qt helper tool to let you easily create configs. still in alpha.
