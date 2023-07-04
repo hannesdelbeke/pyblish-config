@@ -24,4 +24,4 @@ you have 5 plugins registered. the settings file has 3 plugins listed.
 only those 3 plugins will be used.
 
 ## config creator tool
-See the [config creator](https://github.com/hannesdelbeke/pyblish-config/tree/main/pyblish_config_creator), a little qt helper tool to let you easily create configs. still in alpha.
+See the [config creator](https://github.com/hannesdelbeke/pyblish-config/tree/main/pyblish_config_creator), a little qt helper tool to help you  create configs. (still in alpha, will have bugs)
