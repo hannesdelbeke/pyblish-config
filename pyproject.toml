@@ -10,9 +10,9 @@ packages = ["pyblish_config"]
 [project]
 name = "pyblish-config"
 authors = [
-    {name = "Hannes"},
+    {name = "Hannes D"},
 ]
-description = "use configs with pyblish"
+description = "Control the flow and settings of your Pyblish plugins with config files"
 readme = "README.md"
 requires-python = ">=3.4"
 keywords = ["plugin", "addon", "add-on", "extension", "manager", "studio", "dcc", "pipeline"]
@@ -23,7 +23,7 @@ classifiers = [
 #dynamic = ["dependencies"]
 dependencies = ['importlib-metadata; python_version<"3.7"', "pyblish"]
 #dynamic = ["version"]
-version = "0.0.12"
+version = "0.0.1"
 
 #[project.optional-dependencies]
 #yaml = ["pyyaml"]
